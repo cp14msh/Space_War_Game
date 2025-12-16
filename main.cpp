@@ -6,17 +6,17 @@
 
 using namespace std;
 
-const int WIDTH = 100; // عرض صفحه رو بیشتر کردم که سفینه جا بشه
-const int HEIGHT = 40;
+const int WIDTH = 40;  // عرض صفحه
+const int HEIGHT = 20; // طول صفحه
 
 class Player
 {
 public:
     int x, y;
     int width, height;    // عرض و ارتفاع سفینه
-    vector<string> shape; // شکل سفینه
+    vector<string> shape; // ساخت سفینه
 
-    Player(int startX, int startY)
+    Player(int startX, int startY) // ساخت پیلر که ایکس و وای میگره
     {
         x = startX;
         y = startY;
@@ -28,63 +28,58 @@ public:
             " |_| ",
             " / \\ "};
 
-        height = shape.size();     // ارتفاع میشه تعداد خط‌ها (4)
-        width = shape[0].length(); // عرض میشه طول اولین خط (5)
+        height = shape.size();     // ارتفاع سفینه
+        width = shape[0].length(); // عرض سفینه
     }
 
     void moveLeft()
     {
-        if (x > 0)
-            x--; // دیوار چپ
+        if (x > 0) // برای اینکه نذاره از بازی بره بیرون
+            x--;   // دیوار چپ
     }
 
     void moveRight()
     {
-        // دیوار راست (دقت کن: x + width نباید از کادر بزنه بیرون)
-        if (x + width < WIDTH)
+        if (x + width < WIDTH) // برای اینکه نذاره از بازی بره بیرون
             x++;
     }
 };
 
 int main()
 {
-    // سفینه رو می‌ذاریم وسط و پایین (منهای ارتفاعش تا نره بیرون)
-    Player player(WIDTH / 2 - 2, HEIGHT - 5);
+    Player player(WIDTH / 2 - 2, HEIGHT - 5); // سفینه در وسط بازی و پایین ترین نقطه اسپان میشه
 
-    bool gameOver = false;
+    bool gameOver = false; // وقتی بخوایم بازه این رو ترو می کنیم
 
     while (!gameOver)
     {
-        // --- 1. INPUT ---
+        // #include <conio.h>
+        // برای این کتابخونه است که منتظر اینتر نمی مونه
         if (_kbhit())
         {
-            char key = _getch();
-            if (key == 'a')
+            char key = _getch();          // حرفی که می زنیم رو در کی می ریزیم
+            if (key == 'a' || key == 'A') // اگر آ بود میره جپ
                 player.moveLeft();
-            if (key == 'd')
+            if (key == 'd' || key == 'D') // اگر دی بود میره راست
                 player.moveRight();
-            if (key == 'x')
+            if (key == 'x' || key == 'X') // متغیری تعریف کردیم تا با زدنش بتونه از بازی خارج بشه
                 gameOver = true;
         }
 
-        // --- 2. LOGIC ---
-        // فعلا خالی
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE); // ریموت کنترلِ پنجره خروجی (همین صفحه سیاه کنسول) را بده به من تا بتوانم کنترلش کنم.
+        COORD ptr = {0, 0};                            // COORD = Coordinate and set x and y to 0,0
+        SetConsoleCursorPosition(hOut, ptr);           // با استفاده از آن ریموت کنترل نشانگر چشمک‌زن تایپ را ببر بگذار دقیقاً در نقطه شروع
+        // وقتی نشانگر می‌رود اول صفحه، دستورات جدید، روی نوشته‌های قبلی بازنویسی می‌شوند.
 
-        // --- 3. RENDER ---
-        // نشانگر ماوس رو ببر اول صفحه (این بهتر از cls هست چون پرپر نمیکنه)
-        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        COORD ptr = {0, 0};
-        SetConsoleCursorPosition(hOut, ptr);
-
-        // حلقه کشیدن کل صفحه
+        // کشیدن صفحه با دوتا حلقه فور
         for (int y = 0; y < HEIGHT; y++)
         {
             for (int x = 0; x < WIDTH; x++)
             {
 
                 // فرمول ریاضی: آیا مختصات فعلی (x,y) داخل مستطیل سفینه هست؟
-                bool insideX = (x >= player.x && x < player.x + player.width);
-                bool insideY = (y >= player.y && y < player.y + player.height);
+                bool insideX = (x >= player.x && x < player.x + player.width);  // ایکس باید از جایی شروع بشه که عرض سفینه جا بشه
+                bool insideY = (y >= player.y && y < player.y + player.height); // ایکس باید از جایی شروع بشه که ارتفاع سفینه جا بشه
 
                 if (insideX && insideY)
                 {
@@ -104,7 +99,7 @@ int main()
         // راهنما برای کاربر
         cout << "Control: A (Left), D (Right), X (Exit)" << endl;
 
-        Sleep(40); // سرعت بازی
+        Sleep(30); // سرعت بازی
     }
 
     return 0;
