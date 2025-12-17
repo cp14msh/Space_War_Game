@@ -3,6 +3,9 @@
 #include <string>
 #include <conio.h>
 #include <windows.h>
+#include <chrono>
+#include <thread>
+using namespace std::chrono;
 
 using namespace std;
 
@@ -99,7 +102,18 @@ int main()
         // راهنما برای کاربر
         cout << "Control: A (Left), D (Right), X (Exit)" << endl;
 
-        Sleep(30); // سرعت بازی
+        static auto last_frame = steady_clock::now(); // Persistent across loops
+        const milliseconds frame_duration(33);        // ~30 FPS target
+
+        auto now = steady_clock::now();
+        auto elapsed = duration_cast<milliseconds>(now - last_frame);
+
+        if (elapsed < frame_duration)
+        {
+            // Sleep ONLY the remaining time
+            std::this_thread::sleep_for(frame_duration - elapsed);
+        }
+        last_frame = now; // Update for next frame
     }
 
     return 0;
