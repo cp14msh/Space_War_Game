@@ -211,7 +211,7 @@ int main()
                 else if (isBullet)
                     buffer += "|";
                 else if (isEnemy)
-                    buffer += ">o<";
+                    buffer += "V";
                 else
                     buffer += " ";
             }
