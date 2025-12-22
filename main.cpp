@@ -214,12 +214,19 @@ int main()
                     buffer += "V";
                 else
                     buffer += " ";
+
+                if (x == WIDTH - 1)
+                {
+                    buffer += "|";
+                }
             }
             buffer += "\n";
         }
 
         cout << buffer;
-        cout << "Controls: A/D to Move, SPACE to Shoot, X to Quit" << endl;
+        cout << "\n \n \n";
+        cout << "__________________________________________________" << endl;
+        cout << "|Controls: A/D to Move, SPACE to Shoot, X to Quit|" << endl;
 
         // 4. Frame Pacing (FPS Cap)
         // Ensures consistent speed across different hardware
