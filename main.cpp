@@ -37,6 +37,7 @@ public:
     int x, y;
     int width, height;
     vector<string> shape;
+    int hp = 3;
 
     Player(int startX, int startY)
     {
@@ -73,6 +74,7 @@ int main()
     vector<Bullet> bullets;
     vector<Enemy> enemies;
     bool gameOver = false;
+    int hits = 0;
 
     // Console Setup: Hide cursor to avoid flickering artifacts
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -156,6 +158,22 @@ int main()
 
             if (enemies[i].y > HEIGHT)
                 enemies[i].active = false;
+
+            if (enemies[i].active &&
+                enemies[i].x >= player.x &&
+                enemies[i].x < player.x + player.width &&
+                enemies[i].y >= player.y &&
+                enemies[i].y < player.y + player.height)
+            {
+                player.hp -= 1;
+                enemies[i].active = false;
+                Beep(500, 50); // Beep( Frequency , Duration );
+            }
+
+            if (player.hp == 0)
+            {
+                gameOver = true;
+            }
         }
 
         // Remove inactive enemies
@@ -168,6 +186,29 @@ int main()
             else
             {
                 i++;
+            }
+        }
+
+        // Did the bullet hit the enemy?
+        for (int i = 0; i < bullets.size(); i++)
+        {
+            if (!bullets[i].active)
+                continue;
+
+            for (int j = 0; j < enemies.size(); j++)
+            {
+                if (!enemies[j].active)
+                    continue;
+
+                if (bullets[i].x == enemies[j].x &&
+                    (bullets[i].y == enemies[j].y || bullets[i].y == enemies[j].y + 1 || bullets[i].y == enemies[j].y - 1))
+                {
+                    bullets[i].active = false;
+                    enemies[j].active = false;
+                    Beep(700, 20);
+                    hits += 1;
+                    break;
+                }
             }
         }
 
@@ -211,13 +252,23 @@ int main()
                 else if (isBullet)
                     buffer += "|";
                 else if (isEnemy)
-                    buffer += "V";
+                    buffer += "M";
                 else
                     buffer += " ";
 
                 if (x == WIDTH - 1)
                 {
                     buffer += "|";
+                }
+
+                if (y == 0 && x == WIDTH - 1)
+                {
+                    buffer += "HEALTH:  " + to_string(player.hp);
+                }
+
+                if (y == 1 && x == WIDTH - 1)
+                {
+                    buffer += "Hits:  " + to_string(hits);
                 }
             }
             buffer += "\n";
