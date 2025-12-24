@@ -67,6 +67,30 @@ public:
     }
 };
 
+void ShowGameOverScreen(int score)
+{
+    system("cls");
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12); // Change the text color (and background) for all future console output to color code
+
+    cout << "\n\n\n\n";
+    cout << "\t\t\t#########################################\n";
+    cout << "\t\t\t#                                       #\n";
+    cout << "\t\t\t#              GAME OVER!               #\n";
+    cout << "\t\t\t#                                       #\n";
+    cout << "\t\t\t#########################################\n";
+    cout << "\t\t\t#                                       #\n";
+    cout << "\t\t\t#          FINAL SCORE: " << score << "\t\t#\n";
+    cout << "\t\t\t#                                       #\n";
+    cout << "\t\t\t#########################################\n";
+    cout << "\n";
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14);
+    cout << "\t\t\t      Press 'Y' to Retry or 'N' to Exit\n";
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+}
+
 int main()
 {
     // Console Setup: Hide cursor to avoid flickering artifacts
@@ -221,10 +245,19 @@ int main()
             // Reset cursor to top-left (0,0) to overwrite previous frame
             SetConsoleCursorPosition(hOut, {0, 0});
 
-            string buffer = ""; // Double buffering technique (construct string, then print once)
+            string buffer = "\n\n"; // Double buffering technique (construct string, then print once)
+            buffer += "  ";
+
+            for (int k = 0; k < WIDTH + 2; k++)
+                buffer += "#";
+            const string MARGIN_LEFT = "  |";
 
             for (int y = 0; y < HEIGHT; y++)
             {
+                if (y != 0)
+                {
+                    buffer += MARGIN_LEFT;
+                }
                 for (int x = 0; x < WIDTH; x++)
                 {
                     // Check if current (x,y) contains a bullet
@@ -266,12 +299,12 @@ int main()
                         buffer += "|";
                     }
 
-                    if (y == 0 && x == WIDTH - 1)
+                    if (y == 1 && x == WIDTH - 1)
                     {
                         buffer += "HEALTH:  " + to_string(player.hp);
                     }
 
-                    if (y == 1 && x == WIDTH - 1)
+                    if (y == 2 && x == WIDTH - 1)
                     {
                         buffer += "Hits:  " + to_string(hits);
                     }
@@ -296,25 +329,17 @@ int main()
             lastFrameTime = steady_clock::now();
         }
 
-        system("cls");
-
-        cout << "\n\n\n";
-        cout << "\t\t GAME OVER! \n";
-        cout << "\t\t Score: " << hits << "\n";
-        cout << "\t\t Do you want to play again? (y/n): ";
+        ShowGameOverScreen(hits);
         FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); // delete buffer for etAsyncKeyState
 
         char input;
         cin >> input;
-
         if (input == 'y' || input == 'Y')
-        {
             keepPlaying = true;
-        }
         else
-        {
             keepPlaying = false;
-        }
+
+        system("cls");
     }
 
     return 0;
