@@ -51,6 +51,28 @@ public:
     }
 };
 
+class Enemy3
+{
+public:
+    int x, y;
+    int health_enemy3;
+    int width, height;
+    bool active;
+    vector<string> shape_enemy3;
+    steady_clock::time_point lastMoveTime;
+
+    Enemy3()
+    {
+        // ASCII Art for the spaceship
+        shape_enemy3 = {
+            " /M\\ ",
+            " \\W/ "};
+        height = shape_enemy3.size();
+        width = shape_enemy3[0].length();
+        health_enemy3 = 5;
+    }
+};
+
 class Player
 {
 public:
@@ -125,6 +147,7 @@ int main()
     auto lastFrameTime = steady_clock::now();
     auto lastEnemySpawnTime = steady_clock::now();
     auto lastEnemySpawnTime2 = steady_clock::now();
+    auto lastEnemySpawnTime3 = steady_clock::now();
 
     srand(time(0));
 
@@ -138,6 +161,7 @@ int main()
         vector<Bullet> bullets;
         vector<Enemy> enemies;
         vector<Enemy2> enemies2;
+        vector<Enemy3> enemies3;
         bool gameOver = false;
         int hits = 0;
 
@@ -243,7 +267,7 @@ int main()
 
             // Enemy2 spawn limiter: 1000ms
             auto now2 = steady_clock::now();
-            if (hits > 2)
+            if (hits > 20)
             {
                 if (duration_cast<milliseconds>(now2 - lastEnemySpawnTime2).count() > 2000)
                 {
@@ -300,6 +324,68 @@ int main()
                     i++;
                 }
             }
+            ///////////////////
+
+            // Enemy3 spawn limiter: 1000ms
+            auto now3 = steady_clock::now();
+            if (hits > 40)
+            {
+                if (duration_cast<milliseconds>(now3 - lastEnemySpawnTime3).count() > 3000)
+                {
+                    Enemy3 e3;
+                    e3.y = 1;
+                    e3.x = rand() % (WIDTH - e3.width - 2) + 1;
+                    e3.lastMoveTime = steady_clock::now();
+                    enemies3.push_back(e3);
+                    lastEnemySpawnTime3 = now3;
+                    e3.active = true;
+                }
+
+                // Move enemies3 down
+                for (int i = 0; i < enemies3.size(); i++)
+                {
+                    auto now3 = steady_clock::now();
+
+                    if (duration_cast<milliseconds>(now3 - enemies3[i].lastMoveTime).count() > 250)
+                    {
+                        enemies3[i].y++;
+                        enemies3[i].lastMoveTime = now2;
+                    }
+
+                    if (enemies3[i].y > HEIGHT)
+                        enemies3[i].active = false;
+
+                    if (enemies3[i].active &&
+                        player.x < enemies3[i].x + enemies3[i].width &&
+                        player.x + player.width > enemies3[i].x &&
+                        player.y < enemies3[i].y + enemies3[i].height &&
+                        player.y + player.height > enemies3[i].y)
+                    {
+                        player.hp -= 2;
+                        enemies3[i].active = false;
+                        Beep(500, 100);
+                    }
+
+                    if (player.hp == 0)
+                    {
+                        gameOver = true;
+                    }
+                }
+            }
+
+            // Remove inactive enemies3
+            for (int i = 0; i < enemies3.size();)
+            {
+                if (!enemies3[i].active)
+                {
+                    enemies3.erase(enemies3.begin() + i);
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            ////////////////////
 
             // Did the bullet hit the enemy?
             for (int i = 0; i < bullets.size(); i++)
@@ -360,6 +446,42 @@ int main()
                 }
             }
 
+            // Did the bullet hit the enemy3?
+            for (int i = 0; i < bullets.size(); i++)
+            {
+                if (!bullets[i].active)
+                    continue;
+
+                for (int j = 0; j < enemies3.size(); j++)
+                {
+                    if (!enemies3[j].active)
+                        continue;
+
+                    bool hitX = (bullets[i].x >= enemies3[j].x && bullets[i].x < enemies3[j].x + enemies3[j].width);
+                    bool hitY = (bullets[i].y >= enemies3[j].y && bullets[i].y < enemies3[j].y + enemies3[j].height);
+
+                    if (hitX && hitY)
+                    {
+                        bullets[i].active = false;
+
+                        if (enemies3[j].health_enemy3 <= 1)
+                        {
+                            enemies3[j].active = false;
+                            bullets[i].active = false;
+                            Beep(800, 20);
+                            hits += 5;
+                        }
+                        else
+                        {
+                            enemies3[j].health_enemy3--;
+                            Beep(200, 20);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
             // 3. Rendering
             // Reset cursor to top-left (0,0) to overwrite previous frame
             SetConsoleCursorPosition(hOut, {0, 0});
@@ -391,8 +513,11 @@ int main()
                     }
                     // Check if current (x,y) contains a enemy2
                     bool isEnemy = false;
-                    char enemy2Char = ' ';
                     bool isEnemy2 = false;
+                    bool isEnemy3 = false;
+
+                    char enemy2Char = ' ';
+                    char enemy3Char = ' ';
 
                     for (auto &e : enemies)
                     {
@@ -416,6 +541,19 @@ int main()
                         }
                     }
 
+                    for (auto &e3 : enemies3)
+                    {
+                        bool insideX = (x >= e3.x && x < e3.x + e3.width);
+                        bool insideY = (y >= e3.y && y < e3.y + e3.height);
+
+                        if (insideX && insideY)
+                        {
+                            isEnemy3 = true;
+                            enemy3Char = e3.shape_enemy3[y - e3.y][x - e3.x];
+                            break;
+                        }
+                    }
+
                     // Check collision/overlap with player coordinates
                     bool insideX = (x >= player.x && x < player.x + player.width);
                     bool insideY = (y >= player.y && y < player.y + player.height);
@@ -428,6 +566,8 @@ int main()
                         buffer += "M";
                     else if (isEnemy2)
                         buffer += enemy2Char;
+                    else if (isEnemy3)
+                        buffer += enemy3Char;
                     else
                         buffer += " ";
 
