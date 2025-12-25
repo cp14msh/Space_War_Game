@@ -31,13 +31,24 @@ struct Enemy
     steady_clock::time_point lastMoveTime;
 };
 
-struct Enemy2
+class Enemy2
 {
+public:
     int x, y;
+    int health_enemy2;
+    int width, height;
     bool active;
-    int health;
-
+    vector<string> shape_enemy2;
     steady_clock::time_point lastMoveTime;
+
+    Enemy2()
+    {
+        // ASCII Art for the spaceship
+        shape_enemy2 = {"<0>"};
+        height = shape_enemy2.size();
+        width = shape_enemy2[0].length();
+        health_enemy2 = 2;
+    }
 };
 
 class Player
@@ -238,14 +249,11 @@ int main()
                 {
                     Enemy2 e2;
                     e2.y = 1;
-                    e2.health = 2;
-
-                    e2.x = rand() % (WIDTH - 2) + 1;
-                    e2.active = true;
+                    e2.x = rand() % (WIDTH - e2.width - 2) + 1;
                     e2.lastMoveTime = steady_clock::now();
-
                     enemies2.push_back(e2);
                     lastEnemySpawnTime2 = now2;
+                    e2.active = true;
                 }
 
                 // Move enemies down
@@ -263,14 +271,14 @@ int main()
                         enemies2[i].active = false;
 
                     if (enemies2[i].active &&
-                        enemies2[i].x >= player.x &&
-                        enemies2[i].x < player.x + player.width &&
-                        enemies2[i].y >= player.y &&
-                        enemies2[i].y < player.y + player.height)
+                        player.x < enemies2[i].x + enemies2[i].width &&
+                        player.x + player.width > enemies2[i].x &&
+                        player.y < enemies2[i].y + enemies2[i].height &&
+                        player.y + player.height > enemies2[i].y)
                     {
                         player.hp -= 1;
                         enemies2[i].active = false;
-                        Beep(500, 50); // Beep( Frequency , Duration );
+                        Beep(500, 100);
                     }
 
                     if (player.hp == 0)
@@ -327,12 +335,14 @@ int main()
                     if (!enemies2[j].active)
                         continue;
 
-                    if (bullets[i].x == enemies2[j].x &&
-                        (bullets[i].y == enemies2[j].y || bullets[i].y == enemies2[j].y + 1 || bullets[i].y == enemies2[j].y - 1))
+                    bool hitX = (bullets[i].x >= enemies2[j].x && bullets[i].x < enemies2[j].x + enemies2[j].width);
+                    bool hitY = (bullets[i].y >= enemies2[j].y && bullets[i].y < enemies2[j].y + enemies2[j].height);
+
+                    if (hitX && hitY)
                     {
                         bullets[i].active = false;
 
-                        if (enemies2[j].health <= 1)
+                        if (enemies2[j].health_enemy2 <= 1)
                         {
                             enemies2[j].active = false;
                             bullets[i].active = false;
@@ -341,7 +351,7 @@ int main()
                         }
                         else
                         {
-                            enemies2[j].health -= 1;
+                            enemies2[j].health_enemy2--;
                             Beep(200, 20);
                         }
 
@@ -379,8 +389,9 @@ int main()
                             break;
                         }
                     }
-                    // Check if current (x,y) contains a enemy
+                    // Check if current (x,y) contains a enemy2
                     bool isEnemy = false;
+                    char enemy2Char = ' ';
                     bool isEnemy2 = false;
 
                     for (auto &e : enemies)
@@ -394,9 +405,13 @@ int main()
 
                     for (auto &e2 : enemies2)
                     {
-                        if (e2.x == x && e2.y == y)
+                        bool insideX = (x >= e2.x && x < e2.x + e2.width);
+                        bool insideY = (y >= e2.y && y < e2.y + e2.height);
+
+                        if (insideX && insideY)
                         {
                             isEnemy2 = true;
+                            enemy2Char = e2.shape_enemy2[y - e2.y][x - e2.x];
                             break;
                         }
                     }
@@ -412,7 +427,7 @@ int main()
                     else if (isEnemy)
                         buffer += "M";
                     else if (isEnemy2)
-                        buffer += "X";
+                        buffer += enemy2Char;
                     else
                         buffer += " ";
 
