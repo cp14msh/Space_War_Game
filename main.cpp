@@ -31,6 +31,15 @@ struct Enemy
     steady_clock::time_point lastMoveTime;
 };
 
+struct Enemy2
+{
+    int x, y;
+    bool active;
+    int health;
+
+    steady_clock::time_point lastMoveTime;
+};
+
 class Player
 {
 public:
@@ -104,6 +113,8 @@ int main()
     auto lastShotTime = steady_clock::now();
     auto lastFrameTime = steady_clock::now();
     auto lastEnemySpawnTime = steady_clock::now();
+    auto lastEnemySpawnTime2 = steady_clock::now();
+
     srand(time(0));
 
     // --- Main Game Loop ---
@@ -115,6 +126,7 @@ int main()
         Player player(WIDTH / 2 - 2, HEIGHT - 5);
         vector<Bullet> bullets;
         vector<Enemy> enemies;
+        vector<Enemy2> enemies2;
         bool gameOver = false;
         int hits = 0;
 
@@ -218,6 +230,69 @@ int main()
                 }
             }
 
+            // Enemy2 spawn limiter: 1000ms
+            auto now2 = steady_clock::now();
+            if (hits > 2)
+            {
+                if (duration_cast<milliseconds>(now2 - lastEnemySpawnTime2).count() > 2000)
+                {
+                    Enemy2 e2;
+                    e2.y = 1;
+                    e2.health = 2;
+
+                    e2.x = rand() % (WIDTH - 2) + 1;
+                    e2.active = true;
+                    e2.lastMoveTime = steady_clock::now();
+
+                    enemies2.push_back(e2);
+                    lastEnemySpawnTime2 = now2;
+                }
+
+                // Move enemies down
+                for (int i = 0; i < enemies2.size(); i++)
+                {
+                    auto now2 = steady_clock::now();
+
+                    if (duration_cast<milliseconds>(now2 - enemies2[i].lastMoveTime).count() > 250)
+                    {
+                        enemies2[i].y++;
+                        enemies2[i].lastMoveTime = now2;
+                    }
+
+                    if (enemies2[i].y > HEIGHT)
+                        enemies2[i].active = false;
+
+                    if (enemies2[i].active &&
+                        enemies2[i].x >= player.x &&
+                        enemies2[i].x < player.x + player.width &&
+                        enemies2[i].y >= player.y &&
+                        enemies2[i].y < player.y + player.height)
+                    {
+                        player.hp -= 1;
+                        enemies2[i].active = false;
+                        Beep(500, 50); // Beep( Frequency , Duration );
+                    }
+
+                    if (player.hp == 0)
+                    {
+                        gameOver = true;
+                    }
+                }
+            }
+
+            // Remove inactive enemies2
+            for (int i = 0; i < enemies2.size();)
+            {
+                if (!enemies2[i].active)
+                {
+                    enemies2.erase(enemies2.begin() + i);
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
             // Did the bullet hit the enemy?
             for (int i = 0; i < bullets.size(); i++)
             {
@@ -236,6 +311,40 @@ int main()
                         enemies[j].active = false;
                         Beep(700, 20);
                         hits += 1;
+                        break;
+                    }
+                }
+            }
+
+            // Did the bullet hit the enemy2?
+            for (int i = 0; i < bullets.size(); i++)
+            {
+                if (!bullets[i].active)
+                    continue;
+
+                for (int j = 0; j < enemies2.size(); j++)
+                {
+                    if (!enemies2[j].active)
+                        continue;
+
+                    if (bullets[i].x == enemies2[j].x &&
+                        (bullets[i].y == enemies2[j].y || bullets[i].y == enemies2[j].y + 1 || bullets[i].y == enemies2[j].y - 1))
+                    {
+                        bullets[i].active = false;
+
+                        if (enemies2[j].health <= 1)
+                        {
+                            enemies2[j].active = false;
+                            bullets[i].active = false;
+                            Beep(700, 20);
+                            hits += 2;
+                        }
+                        else
+                        {
+                            enemies2[j].health -= 1;
+                            Beep(200, 20);
+                        }
+
                         break;
                     }
                 }
@@ -272,11 +381,22 @@ int main()
                     }
                     // Check if current (x,y) contains a enemy
                     bool isEnemy = false;
+                    bool isEnemy2 = false;
+
                     for (auto &e : enemies)
                     {
                         if (e.x == x && e.y == y)
                         {
                             isEnemy = true;
+                            break;
+                        }
+                    }
+
+                    for (auto &e2 : enemies2)
+                    {
+                        if (e2.x == x && e2.y == y)
+                        {
+                            isEnemy2 = true;
                             break;
                         }
                     }
@@ -291,6 +411,8 @@ int main()
                         buffer += "|";
                     else if (isEnemy)
                         buffer += "M";
+                    else if (isEnemy2)
+                        buffer += "X";
                     else
                         buffer += " ";
 
