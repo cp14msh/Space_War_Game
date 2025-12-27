@@ -74,6 +74,30 @@ public:
     }
 };
 
+class Enemy4
+{
+public:
+    int x, y;
+    int health_enemy4;
+    int width, height;
+    bool active;
+
+    vector<string> shape_enemy4;
+    steady_clock::time_point lastMoveTime;
+    steady_clock::time_point lastShootTime;
+
+    Enemy4()
+    {
+        shape_enemy4 = {
+            " /TT\\ ",
+            " \\VV/ "};
+        height = shape_enemy4.size();
+        width = shape_enemy4[0].length();
+        health_enemy4 = 8;
+        lastShootTime = steady_clock::now();
+    }
+};
+
 class Question_Box
 {
 public:
@@ -174,6 +198,7 @@ int main()
         vector<Enemy> enemies;
         vector<Enemy2> enemies2;
         vector<Enemy3> enemies3;
+        vector<Enemy4> enemies4;
         vector<Bullet> enemyBullets;
         vector<Question_Box> box;
 
@@ -186,7 +211,8 @@ int main()
         auto lastEnemySpawnTime = steady_clock::now();
         auto lastEnemySpawnTime2 = steady_clock::now();
         auto lastEnemySpawnTime3 = steady_clock::now();
-        auto lastEnemySpawnTime_b = steady_clock::now();
+        auto lastEnemySpawnTime4 = steady_clock::now();
+        auto lastEnemySpawnTime_bq = steady_clock::now();
         auto lastEnemyBulletMoveTime = steady_clock::now();
 
         while (!gameOver)
@@ -366,7 +392,7 @@ int main()
                     i++;
             }
 
-            // --- Enemy 3 Logic (The Shooter) ---//
+            // --- Enemy 3 Logic (The Shooter1) ---//
             auto now3 = steady_clock::now();
             if (hits > 40)
             {
@@ -413,7 +439,7 @@ int main()
                 }
 
                 // *** Enemy3 shooting ***
-                if (e3.active && duration_cast<milliseconds>(now3 - e3.lastShootTime).count() > 2000) // هر 2 ثانیه
+                if (e3.active && duration_cast<milliseconds>(now3 - e3.lastShootTime).count() > 2000)
                 {
                     Bullet eb;
                     eb.x = e3.x + (e3.width / 2);
@@ -434,7 +460,7 @@ int main()
 
             // --- Enemy Bullets Movement & Logic ---//
             auto nowBullet = steady_clock::now();
-            if (duration_cast<milliseconds>(nowBullet - lastEnemyBulletMoveTime).count() > 80) // سرعت تیر دشمن (سریع)
+            if (duration_cast<milliseconds>(nowBullet - lastEnemyBulletMoveTime).count() > 80)
             {
                 for (auto &eb : enemyBullets)
                 {
@@ -474,11 +500,126 @@ int main()
                     i++;
             }
 
+            // --- Enemy 4 Logic (The Shooter2) ---//
+            auto now4 = steady_clock::now();
+            if (hits > 100)
+            {
+                if (duration_cast<milliseconds>(now4 - lastEnemySpawnTime4).count() > 5000)
+                {
+                    Enemy4 e4;
+                    e4.y = 1;
+                    e4.x = rand() % (WIDTH - 6) + 1;
+                    e4.active = true;
+                    e4.lastMoveTime = now4;
+                    enemies4.push_back(e4);
+                    lastEnemySpawnTime4 = now4;
+                }
+            }
+
+            for (auto &e4 : enemies4)
+            {
+
+                if (duration_cast<milliseconds>(now4 - e4.lastMoveTime).count() > 250)
+                {
+                    e4.y++;
+                    e4.lastMoveTime = now4;
+                }
+                if (e4.y > HEIGHT)
+                    e4.active = false;
+
+                if (e4.active && player.x < e4.x + e4.width && player.x + player.width > e4.x && player.y < e4.y + e4.height && player.y + player.height > e4.y)
+                {
+                    if (player.weaponLevel > 2)
+                    {
+                        player.weaponLevel -= 2;
+                    }
+                    else if (player.weaponLevel == 2)
+                    {
+                        player.weaponLevel--;
+                        player.hp--;
+                    }
+                    else if (player.weaponLevel == 1)
+                    {
+                        player.hp -= 2;
+                    }
+                    e4.active = false;
+                    Beep(500, 100);
+                }
+
+                // *** Enemy4 shooting (Dual Shot) ***
+                if (e4.active && duration_cast<milliseconds>(now4 - e4.lastShootTime).count() > 2000)
+                {
+                    Bullet eb1;
+                    eb1.x = e4.x + 1;
+                    eb1.y = e4.y + e4.height;
+                    eb1.active = true;
+                    enemyBullets.push_back(eb1);
+
+                    Bullet eb2;
+                    eb2.x = e4.x + e4.width - 2;
+                    eb2.y = e4.y + e4.height;
+                    eb2.active = true;
+                    enemyBullets.push_back(eb2);
+
+                    e4.lastShootTime = now4;
+                }
+            }
+
+            for (size_t i = 0; i < enemies4.size();)
+            {
+                if (!enemies4[i].active)
+                    enemies4.erase(enemies4.begin() + i);
+                else
+                    i++;
+            }
+
+            // --- Enemy4 Bullets Movement & Logic ---//
+            auto nowBullet2 = steady_clock::now();
+            if (duration_cast<milliseconds>(nowBullet2 - lastEnemyBulletMoveTime).count() > 80) // سرعت تیر دشمن (سریع)
+            {
+                for (auto &eb : enemyBullets)
+                {
+                    eb.y++;
+                    if (eb.y >= HEIGHT)
+                        eb.active = false;
+                }
+                lastEnemyBulletMoveTime = nowBullet2;
+            }
+
+            // Did the player get hit by enemy4 bullets?
+            for (auto &eb : enemyBullets)
+            {
+                if (!eb.active)
+                    continue;
+
+                if (eb.x >= player.x && eb.x < player.x + player.width && eb.y >= player.y && eb.y < player.y + player.height)
+                {
+                    if (player.weaponLevel > 1)
+                    {
+                        player.weaponLevel--;
+                    }
+                    else
+                    {
+                        player.hp--;
+                    }
+                    eb.active = false;
+                    Beep(1000, 50);
+                }
+            }
+
+            for (size_t i = 0; i < enemyBullets.size();)
+            {
+                if (!enemyBullets[i].active)
+                    enemyBullets.erase(enemyBullets.begin() + i);
+                else
+                    i++;
+            }
+
             // --- B Q Logic ---//
             auto now_b = steady_clock::now();
             if (hits > 70)
             {
-                if (duration_cast<milliseconds>(now_b - lastEnemySpawnTime_b).count() > 30000)
+                if (duration_cast<milliseconds>(now_b - lastEnemySpawnTime_bq).count() > 30000)
                 {
                     Question_Box b;
                     b.y = 1;
@@ -486,7 +627,7 @@ int main()
                     b.active = true;
                     b.lastMoveTime = now_b;
                     box.push_back(b);
-                    lastEnemySpawnTime_b = now_b;
+                    lastEnemySpawnTime_bq = now_b;
                 }
             }
             for (auto &b : box)
@@ -615,6 +756,27 @@ int main()
                         break;
                     }
                 }
+
+                // vs Enemy 4
+                for (auto &e4 : enemies4)
+                {
+                    if (e4.active && b.x >= e4.x && b.x < e4.x + e4.width && b.y >= e4.y && b.y < e4.y + e4.height)
+                    {
+                        b.active = false;
+                        if (e4.health_enemy4 <= 1)
+                        {
+                            e4.active = false;
+                            hits += 8;
+                            Beep(1000, 20);
+                        }
+                        else
+                        {
+                            e4.health_enemy4--;
+                            Beep(300, 20);
+                        }
+                        break;
+                    }
+                }
             }
 
             if (player.hp <= 0)
@@ -692,6 +854,20 @@ int main()
                         }
                     }
 
+                    // Render Enemy 4
+                    bool isEnemy4 = false;
+                    char enemy4Char = ' ';
+
+                    for (auto &e4 : enemies4)
+                    {
+                        if (x >= e4.x && x < e4.x + e4.width && y >= e4.y && y < e4.y + e4.height)
+                        {
+                            isEnemy4 = true;
+                            enemy4Char = e4.shape_enemy4[y - e4.y][x - e4.x];
+                            break;
+                        }
+                    }
+
                     bool isbox = false;
                     char boxChar = ' ';
 
@@ -724,6 +900,8 @@ int main()
                         buffer += enemy2Char;
                     else if (isEnemy3)
                         buffer += enemy3Char;
+                    else if (isEnemy4)
+                        buffer += enemy4Char;
                     else if (isbox)
                     {
                         buffer += boxChar;
@@ -738,6 +916,8 @@ int main()
                         buffer += " HEALTH: " + to_string(player.hp);
                     if (y == 2 && x == WIDTH - 1)
                         buffer += " SCORE:  " + to_string(hits);
+                    if (y == 3 && x == WIDTH - 1)
+                        buffer += " WeaponLevel:  " + to_string(player.weaponLevel);
                 }
                 buffer += "\n";
             }
