@@ -10,12 +10,12 @@
 using namespace std;
 using namespace std::chrono;
 
-// --- Constants ---
+// --- Constants --- //
 const int WIDTH = 60;
 const int HEIGHT = 40;
 const int FRAME_DURATION_MS = 33; // Target ~30 FPS
 
-// --- Structures & Classes ---
+// --- Structures & Classes ---//
 
 struct Bullet
 {
@@ -37,6 +37,7 @@ public:
     int health_enemy2;
     int width, height;
     bool active;
+
     vector<string> shape_enemy2;
     steady_clock::time_point lastMoveTime;
 
@@ -56,6 +57,7 @@ public:
     int health_enemy3;
     int width, height;
     bool active;
+
     vector<string> shape_enemy3;
     steady_clock::time_point lastMoveTime;
     steady_clock::time_point lastShootTime;
@@ -72,6 +74,29 @@ public:
     }
 };
 
+class Question_Box
+{
+public:
+    int x, y;
+    int width, height;
+    bool active;
+    int q_r;
+
+    vector<string> shape_box;
+    steady_clock::time_point lastMoveTime;
+
+    Question_Box()
+    {
+        shape_box =
+            {
+                "+---+",
+                "|Q B|",
+                "+---+"};
+        height = shape_box.size();
+        width = shape_box[0].length();
+    }
+};
+
 class Player
 {
 public:
@@ -79,6 +104,7 @@ public:
     int width, height;
     vector<string> shape;
     int hp = 3;
+    int weaponLevel = 1;
 
     Player(int startX, int startY)
     {
@@ -141,7 +167,7 @@ int main()
 
     while (keepPlaying)
     {
-        // --- Initialization ---
+        // --- Initialization ---//
         Player player(WIDTH / 2 - 2, HEIGHT - 5);
 
         vector<Bullet> bullets;
@@ -149,6 +175,7 @@ int main()
         vector<Enemy2> enemies2;
         vector<Enemy3> enemies3;
         vector<Bullet> enemyBullets;
+        vector<Question_Box> box;
 
         bool gameOver = false;
         int hits = 0;
@@ -159,6 +186,7 @@ int main()
         auto lastEnemySpawnTime = steady_clock::now();
         auto lastEnemySpawnTime2 = steady_clock::now();
         auto lastEnemySpawnTime3 = steady_clock::now();
+        auto lastEnemySpawnTime_b = steady_clock::now();
         auto lastEnemyBulletMoveTime = steady_clock::now();
 
         while (!gameOver)
@@ -178,11 +206,33 @@ int main()
                 auto now = steady_clock::now();
                 if (duration_cast<milliseconds>(now - lastShotTime).count() > 200)
                 {
-                    bullets.push_back({player.x + 2, player.y - 1, true});
+
+                    if (player.weaponLevel == 1)
+                    {
+                        bullets.push_back({player.x + 2, player.y - 1, true});
+                    }
+                    else if (player.weaponLevel == 2)
+                    {
+                        bullets.push_back({player.x + 2, player.y - 1, true});
+                        bullets.push_back({player.x + 3, player.y - 1, true});
+                    }
+                    else if (player.weaponLevel == 3)
+                    {
+                        bullets.push_back({player.x + 1, player.y - 1, true});
+                        bullets.push_back({player.x + 2, player.y - 1, true});
+                        bullets.push_back({player.x + 3, player.y - 1, true});
+                    }
+                    else
+                    {
+                        bullets.push_back({player.x + 1, player.y - 1, true});
+                        bullets.push_back({player.x + 2, player.y - 1, true});
+                        bullets.push_back({player.x + 3, player.y - 1, true});
+                        bullets.push_back({player.x + 4, player.y - 1, true});
+                    }
+
                     lastShotTime = now;
                 }
             }
-
             // ========================
             // 2. LOGIC
             // ========================
@@ -203,17 +253,33 @@ int main()
                     i++;
             }
 
-            // --- Enemy 1 Logic ---
+            // --- Enemy 1 Logic ---//
             auto now = steady_clock::now();
-            if (duration_cast<milliseconds>(now - lastEnemySpawnTime).count() > 1000)
+            if (hits >= 0 && hits <= 100)
             {
-                Enemy e;
-                e.y = 1;
-                e.x = rand() % (WIDTH - 2) + 1;
-                e.active = true;
-                e.lastMoveTime = now;
-                enemies.push_back(e);
-                lastEnemySpawnTime = now;
+                if (duration_cast<milliseconds>(now - lastEnemySpawnTime).count() > 1000)
+                {
+                    Enemy e;
+                    e.y = 1;
+                    e.x = rand() % (WIDTH - 2) + 1;
+                    e.active = true;
+                    e.lastMoveTime = now;
+                    enemies.push_back(e);
+                    lastEnemySpawnTime = now;
+                }
+            }
+            else if (hits > 100)
+            {
+                if (duration_cast<milliseconds>(now - lastEnemySpawnTime).count() > 2000)
+                {
+                    Enemy e;
+                    e.y = 1;
+                    e.x = rand() % (WIDTH - 2) + 1;
+                    e.active = true;
+                    e.lastMoveTime = now;
+                    enemies.push_back(e);
+                    lastEnemySpawnTime = now;
+                }
             }
 
             for (auto &e : enemies)
@@ -229,7 +295,14 @@ int main()
                 // Collision with Player
                 if (e.active && e.x >= player.x && e.x < player.x + player.width && e.y >= player.y && e.y < player.y + player.height)
                 {
-                    player.hp--;
+                    if (player.weaponLevel > 1)
+                    {
+                        player.weaponLevel--;
+                    }
+                    else
+                    {
+                        player.hp--;
+                    }
                     e.active = false;
                     Beep(500, 50);
                 }
@@ -243,7 +316,7 @@ int main()
                     i++;
             }
 
-            // --- Enemy 2 Logic ---
+            // --- Enemy 2 Logic ---//
             auto now2 = steady_clock::now();
             if (hits > 20)
             {
@@ -272,7 +345,14 @@ int main()
                 // Collision with Player
                 if (e2.active && player.x < e2.x + e2.width && player.x + player.width > e2.x && player.y < e2.y + e2.height && player.y + player.height > e2.y)
                 {
-                    player.hp--;
+                    if (player.weaponLevel > 1)
+                    {
+                        player.weaponLevel--;
+                    }
+                    else
+                    {
+                        player.hp--;
+                    }
                     e2.active = false;
                     Beep(500, 100);
                 }
@@ -286,7 +366,7 @@ int main()
                     i++;
             }
 
-            // --- Enemy 3 Logic (The Shooter) ---
+            // --- Enemy 3 Logic (The Shooter) ---//
             auto now3 = steady_clock::now();
             if (hits > 40)
             {
@@ -315,7 +395,19 @@ int main()
 
                 if (e3.active && player.x < e3.x + e3.width && player.x + player.width > e3.x && player.y < e3.y + e3.height && player.y + player.height > e3.y)
                 {
-                    player.hp -= 2;
+                    if (player.weaponLevel > 2)
+                    {
+                        player.weaponLevel -= 2;
+                    }
+                    else if (player.weaponLevel == 2)
+                    {
+                        player.weaponLevel--;
+                        player.hp--;
+                    }
+                    else if (player.weaponLevel == 1)
+                    {
+                        player.hp -= 2;
+                    }
                     e3.active = false;
                     Beep(500, 100);
                 }
@@ -340,7 +432,7 @@ int main()
                     i++;
             }
 
-            // --- Enemy Bullets Movement & Logic ---
+            // --- Enemy Bullets Movement & Logic ---//
             auto nowBullet = steady_clock::now();
             if (duration_cast<milliseconds>(nowBullet - lastEnemyBulletMoveTime).count() > 80) // سرعت تیر دشمن (سریع)
             {
@@ -361,7 +453,14 @@ int main()
 
                 if (eb.x >= player.x && eb.x < player.x + player.width && eb.y >= player.y && eb.y < player.y + player.height)
                 {
-                    player.hp--;
+                    if (player.weaponLevel > 1)
+                    {
+                        player.weaponLevel--;
+                    }
+                    else
+                    {
+                        player.hp--;
+                    }
                     eb.active = false;
                     Beep(1000, 50);
                 }
@@ -375,7 +474,82 @@ int main()
                     i++;
             }
 
-            // --- Collisions: Player Bullets vs Enemies ---
+            // --- B Q Logic ---//
+            auto now_b = steady_clock::now();
+            if (hits > 70)
+            {
+                if (duration_cast<milliseconds>(now_b - lastEnemySpawnTime_b).count() > 30000)
+                {
+                    Question_Box b;
+                    b.y = 1;
+                    b.x = rand() % (WIDTH - 6) + 1;
+                    b.active = true;
+                    b.lastMoveTime = now_b;
+                    box.push_back(b);
+                    lastEnemySpawnTime_b = now_b;
+                }
+            }
+            for (auto &b : box)
+            {
+                if (duration_cast<milliseconds>(now_b - b.lastMoveTime).count() > 500)
+                {
+                    b.y++;
+                    b.lastMoveTime = now_b;
+                }
+                if (b.y > HEIGHT)
+                    b.active = false;
+
+                // Collision with Player
+                if (b.active && player.x < b.x + b.width && player.x + player.width > b.x && player.y < b.y + b.height && player.y + player.height > b.y)
+                {
+                    b.q_r = rand() % (5) + 1;
+                    b.active = false;
+                    Beep(1000, 100);
+                    switch (b.q_r)
+                    {
+                    case 1:
+                        player.hp = 1;
+                        break;
+
+                    case 2:
+                        if (player.hp > 1)
+                        {
+                            player.hp -= 1;
+                        }
+                        break;
+
+                    case 3:
+                        if (player.hp < 3)
+                        {
+                            player.hp += 1;
+                        }
+                        break;
+
+                    case 4:
+                        if (player.weaponLevel < 4)
+                        {
+                            player.weaponLevel++;
+                            Beep(600, 50);
+                            Beep(800, 50);
+                        }
+                        break;
+
+                    case 5:
+                        hits += 10;
+                        break;
+                    }
+                }
+            }
+
+            for (size_t i = 0; i < box.size();)
+            {
+                if (!box[i].active)
+                    box.erase(box.begin() + i);
+                else
+                    i++;
+            }
+
+            // --- Collisions: Player Bullets vs Enemies ---//
             for (auto &b : bullets)
             {
                 if (!b.active)
@@ -452,6 +626,7 @@ int main()
             SetConsoleCursorPosition(hOut, {0, 0});
             string buffer = "\n\n";
             buffer += "  ";
+
             for (int k = 0; k < WIDTH + 2; k++)
                 buffer += "#";
             const string MARGIN_LEFT = "  |";
@@ -472,6 +647,7 @@ int main()
                         }
 
                     bool isEnemyBullet = false;
+
                     for (const auto &eb : enemyBullets)
                         if (eb.x == x && eb.y == y)
                         {
@@ -480,6 +656,7 @@ int main()
                         }
 
                     bool isEnemy = false;
+
                     for (auto &e : enemies)
                         if (e.x == x && e.y == y)
                         {
@@ -490,6 +667,7 @@ int main()
                     // Render Enemy 2
                     bool isEnemy2 = false;
                     char enemy2Char = ' ';
+
                     for (auto &e2 : enemies2)
                     {
                         if (x >= e2.x && x < e2.x + e2.width && y >= e2.y && y < e2.y + e2.height)
@@ -503,6 +681,7 @@ int main()
                     // Render Enemy 3
                     bool isEnemy3 = false;
                     char enemy3Char = ' ';
+
                     for (auto &e3 : enemies3)
                     {
                         if (x >= e3.x && x < e3.x + e3.width && y >= e3.y && y < e3.y + e3.height)
@@ -513,11 +692,28 @@ int main()
                         }
                     }
 
+                    bool isbox = false;
+                    char boxChar = ' ';
+
+                    for (const auto &h : box)
+                    {
+                        bool insideX = (x >= h.x && x < h.x + h.width);
+                        bool insideY = (y >= h.y && y < h.y + h.height);
+
+                        if (insideX && insideY)
+                        {
+                            isbox = true;
+                            boxChar = h.shape_box[y - h.y][x - h.x];
+                            break;
+                        }
+                    }
+
                     bool insideX = (x >= player.x && x < player.x + player.width);
                     bool insideY = (y >= player.y && y < player.y + player.height);
 
                     if (insideX && insideY)
                         buffer += player.shape[y - player.y][x - player.x];
+
                     else if (isBullet)
                         buffer += "|";
                     else if (isEnemyBullet)
@@ -528,6 +724,11 @@ int main()
                         buffer += enemy2Char;
                     else if (isEnemy3)
                         buffer += enemy3Char;
+                    else if (isbox)
+                    {
+                        buffer += boxChar;
+                    }
+
                     else
                         buffer += " ";
 
@@ -540,6 +741,7 @@ int main()
                 }
                 buffer += "\n";
             }
+
             cout << buffer;
             cout << "\n \n \n";
             cout << "__________________________________________________" << endl;
@@ -547,19 +749,23 @@ int main()
 
             auto endnow = steady_clock::now();
             auto elapsed = duration_cast<milliseconds>(endnow - lastFrameTime);
+
             if (elapsed < milliseconds(FRAME_DURATION_MS))
                 std::this_thread::sleep_for(milliseconds(FRAME_DURATION_MS) - elapsed);
+
             lastFrameTime = steady_clock::now();
         }
 
         ShowGameOverScreen(hits);
         FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+
         char input;
         cin >> input;
         if (input == 'y' || input == 'Y')
             keepPlaying = true;
         else
             keepPlaying = false;
+
         system("cls");
     }
     return 0;
