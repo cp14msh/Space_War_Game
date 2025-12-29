@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <conio.h>
 using namespace std;
 
 struct Bullet {
@@ -14,6 +15,29 @@ struct Enemy {
     float x, y;
     int height, width, speed;
 };
+void handleInput(Player &player, vector<Bullet> &bullets)
+{
+    if (_kbhit()) {              // آیا کلیدی زده شده؟
+        char key = _getch();     // کلید چی بوده؟
+
+        if (key == 'a') {        // چپ
+            player.x -= player.speed;
+        }
+        else if (key == 'd') {   // راست
+            player.x += player.speed;
+        }
+        else if (key == 'w') {   // بالا
+            player.y -= player.speed;
+        }
+        else if (key == 's') {   // پایین
+            player.y += player.speed;
+        }
+        else if (key == ' ') {   // Space → شلیک
+            bullets.push_back({player.x + 20, player.y, 4, 10, 8});
+        }
+    }
+}
+
 int main() {
     const int SCREEN_WIDTH = 800;
     const int SCREEN_HEIGHT = 600;
@@ -31,4 +55,13 @@ int main() {
     }
     vector<Bullet> bullets; // وکتوری از نوع struct Bullet
     vector<Enemy> enemies;
+    handleInput(player, bullets);
+    for (auto &e : enemies)
+        {
+            e.y += e.speed;
+        }
+        for (auto &b : bullets)
+        {
+            b.y -= b.speed;
+        }
 }
