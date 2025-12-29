@@ -45,6 +45,14 @@ bool checkCollisionPlayerEnemy(Player &player, Enemy &e) {//خورده یا نخ
         player.y + player.height > e.y
     );
 }
+bool checkCollisionBulletsEnemy(Bullet &bullets, Enemy &e) {//خورده یا نخورده (true/false)
+    return (
+        bullets.x < e.x + e.width &&
+        bullets.x + bullets.width > e.x &&
+        bullets.y < e.y + e.height &&
+        bullets.y + bullets.height > e.y
+    );
+}
 
 int main() {
     const int SCREEN_WIDTH = 800;
@@ -71,9 +79,23 @@ int main() {
             if (checkCollisionPlayerEnemy(player, e)) {
                 gameover = true;
                 break;
+            }
         }
         for (auto &b : bullets)
         {
             b.y -= b.speed;
+        }
+        for (int i = 0; i < bullets.size(); i++) {
+            for (int j = 0; j < enemies.size(); j++) {
+
+                if (checkCollisionBulletsEnemy(bullets[i], enemies[j])) {
+                    // حذف تیر
+                    bullets.erase(bullets.begin() + i);
+                    i--;
+                    // حذف دشمن
+                    enemies.erase(enemies.begin() + j);
+                    j--;
+                }
+            }
         }
 }
