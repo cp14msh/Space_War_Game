@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 using namespace std;
 
 struct Bullet {
@@ -28,4 +29,6 @@ int main() {
     if (player.x + player.width > SCREEN_WIDTH) {
         player.x = SCREEN_WIDTH - player.width;
     }
+    vector<Bullet> bullets; // وکتوری از نوع struct Bullet
+    vector<Enemy> enemies;
 }
