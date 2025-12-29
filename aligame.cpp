@@ -37,6 +37,14 @@ void handleInput(Player &player, vector<Bullet> &bullets)
         }
     }
 }
+bool checkCollisionPlayerEnemy(Player &player, Enemy &e) {//خورده یا نخورده (true/false)
+    return (
+        player.x < e.x + e.width &&
+        player.x + player.width > e.x &&
+        player.y < e.y + e.height &&
+        player.y + player.height > e.y
+    );
+}
 
 int main() {
     const int SCREEN_WIDTH = 800;
@@ -55,10 +63,14 @@ int main() {
     }
     vector<Bullet> bullets; // وکتوری از نوع struct Bullet
     vector<Enemy> enemies;
+    bool gameover = false;
     handleInput(player, bullets);
     for (auto &e : enemies)
         {
             e.y += e.speed;
+            if (checkCollisionPlayerEnemy(player, e)) {
+                gameover = true;
+                break;
         }
         for (auto &b : bullets)
         {
