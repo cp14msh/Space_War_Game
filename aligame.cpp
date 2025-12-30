@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <conio.h>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
 struct Bullet {
@@ -63,20 +65,34 @@ int main() {
         player.height = 20;
         player.width = 40;
         player.speed = 5;
-    if (player.x < 0) {// محدودیت حرکت سفینه
-        player.x = 0;
-    }
-    if (player.x + player.width > SCREEN_WIDTH) {
-        player.x = SCREEN_WIDTH - player.width;
-    }
     vector<Bullet> bullets; // وکتوری از نوع struct Bullet
     vector<Enemy> enemies;
+    srand(time(0));
+    int enemySpawnCounter = 0;
     bool gameover = false;
-    handleInput(player, bullets);
-    for (auto &e : enemies)
+    while (!gameover) {
+        enemySpawnCounter++;
+        if (enemySpawnCounter > 50) {
+            Enemy e;
+            e.x = rand() % 760;
+            e.y = -20;
+            e.width = 40;
+            e.height = 20;
+            e.speed = 2;
+            enemies.push_back(e);
+            enemySpawnCounter = 0;
+        }
+        if (player.x < 0) {// محدودیت حرکت سفینه
+        player.x = 0;
+        }
+        if (player.x + player.width > SCREEN_WIDTH) {
+            player.x = SCREEN_WIDTH - player.width;
+        }
+        handleInput(player, bullets);
+        for (auto &e : enemies)
         {
             e.y += e.speed;
-            if (checkCollisionPlayerEnemy(player, e)) {
+           if (checkCollisionPlayerEnemy(player, e)) {
                 gameover = true;
                 break;
             }
@@ -98,4 +114,5 @@ int main() {
                 }
             }
         }
+    }
 }
