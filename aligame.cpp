@@ -5,6 +5,10 @@
 #include <ctime>
 using namespace std;
 
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 600;
+const int WIDTH = 40;
+const int HEIGHT = 20;
 struct Bullet {
     float x, y;
     int height, width, speed;
@@ -55,16 +59,37 @@ bool checkCollisionBulletsEnemy(Bullet &bullets, Enemy &e) {//خورده یا ن
         bullets.y + bullets.height > e.y
     );
 }
+void clearScreen(char screen[HEIGHT][WIDTH]) {//پاک کردن buffer در ابتدای هر حلقه:
+    for (int y = 0; y < HEIGHT; y++)
+        for (int x = 0; x < WIDTH; x++)
+            screen[y][x] = ' ';
+}
+void drawPlayer(char screen[HEIGHT][WIDTH], Player &player) {//تغییر جدید
+    int x = (int)(player.x / (SCREEN_WIDTH / WIDTH));
+    int y = (int)(player.y / (SCREEN_HEIGHT / HEIGHT));
+
+    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+        screen[y][x] = 'A';  // A = سفینه
+    }
+}
+void drawBullets(char screen[HEIGHT][WIDTH], vector<Bullet> &bullets) {//تغییر جدید : مقیاس پدیری موقعیت ها با صفحه نمایش
+    for (auto &b : bullets) {
+        int x = (int)(b.x / (SCREEN_WIDTH / WIDTH));
+        int y = (int)(b.y / (SCREEN_HEIGHT / HEIGHT));
+
+        if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
+            screen[y][x] = '|';
+    }
+}
 
 int main() {
-    const int SCREEN_WIDTH = 800;
-    const int SCREEN_HEIGHT = 600;
     Player player;
         player.x = SCREEN_WIDTH / 2;
         player.y = SCREEN_HEIGHT - 50;
         player.height = 20;
         player.width = 40;
         player.speed = 5;
+    char screen[HEIGHT][WIDTH];
     vector<Bullet> bullets; // وکتوری از نوع struct Bullet
     vector<Enemy> enemies;
     srand(time(0));
