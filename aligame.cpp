@@ -69,9 +69,17 @@ int main() {
     vector<Enemy> enemies;
     srand(time(0));
     int enemySpawnCounter = 0;
+    int score = 0;
+    int enemyBaseSpeed = 2;
     bool gameover = false;
     while (!gameover) {
         enemySpawnCounter++;
+        if (score > 10) {
+            enemyBaseSpeed = 3;
+        }
+        if (score > 20) {
+            enemyBaseSpeed = 4;
+        }
         if (enemySpawnCounter > 50) {
             Enemy e;
             e.x = rand() % 760;
@@ -115,4 +123,8 @@ int main() {
             }
         }
     }
+    system("cls");
+    cout << "GAME OVER ☠️" << endl;
+    cout << "Final Score: " << score << endl;
+    return 0;
 }
