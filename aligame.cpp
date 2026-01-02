@@ -3,6 +3,8 @@
 #include <conio.h>
 #include <cstdlib>
 #include <ctime>
+#include <windows.h>
+#include <algorithm>
 using namespace std;
 
 const int SCREEN_WIDTH = 800;
@@ -80,6 +82,38 @@ void drawBullets(char screen[HEIGHT][WIDTH], vector<Bullet> &bullets) {//تغی�
         if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
             screen[y][x] = '|';
     }
+}
+void drawEnemies(char screen[HEIGHT][WIDTH], vector<Enemy> &enemies) {//تغییر جدید 
+    for (auto &e : enemies) {
+        int x = (int)(e.x / (SCREEN_WIDTH / WIDTH));
+        int y = (int)(e.y / (SCREEN_HEIGHT / HEIGHT));
+
+        if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
+            screen[y][x] = 'X';
+    }
+}
+void moveCursorToTop() {
+    COORD coord = {0, 0};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+void hideCursor() {
+    HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    info.dwSize = 100;
+    info.bVisible = FALSE;
+    SetConsoleCursorInfo(console, &info);
+}
+void render(char screen[HEIGHT][WIDTH], int score) {
+    moveCursorToTop();   // 👈 کلیدی‌ترین خط
+
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            cout << screen[y][x];
+        }
+        cout << '\n';
+    }
+
+    cout << "Score: " << score << "      \n";
 }
 
 int main() {
