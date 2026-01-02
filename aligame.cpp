@@ -163,6 +163,10 @@ int main() {
                 gameover = true;
                 break;
             }
+        if (gameover) {
+            render(screen, score); // آخرین وضعیت بازی
+            Sleep(500); 
+            break;
         }
         for (auto &b : bullets)
         {
@@ -181,9 +185,18 @@ int main() {
                 }
             }
         }
+        //آماده‌سازی Back Buffer
+        clearScreen(screen);
+        drawPlayer(screen, player);
+        drawBullets(screen, bullets);
+        drawEnemies(screen, enemies);
+        //system("cls");               جایگزینی با کروسر
+        render(screen, score);
+        Sleep(30);
     }
     system("cls");
     cout << "GAME OVER ☠️" << endl;
     cout << "Final Score: " << score << endl;
     return 0;
+    }
 }
