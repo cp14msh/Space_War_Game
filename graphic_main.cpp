@@ -18,15 +18,21 @@ int main()
     window.setFramerateLimit(60);
 
     // -------------------------------------------------
-    //
+    // Loading image
     // -------------------------------------------------
+    Texture spaceshipTexture;
+    if (!spaceshipTexture.loadFromFile("spaceship.png"))
+    {
+        cerr << "Error: Could not load spaceship.png!" << endl;
+        return -1;
+    }
 
-    // palyer shape
-    CircleShape player(50.f);
-    player.setFillColor(Color::Green);
+    // Paste the image into the sprite
+    Sprite player(spaceshipTexture);
+    player.setScale({1.4f, 1.4f});
 
     // set position for player
-    player.setPosition({350.f, 250.f});
+    player.setPosition({350.f, 500.f});
 
     // game loop
     while (window.isOpen())
@@ -65,26 +71,23 @@ int main()
         // vector2f give two variable
         Vector2f pos = player.getPosition();
 
-        // Calculating player height
-        float playerSize = player.getRadius() * 2;
+        // Get the player's frame (the hypothetical rectangle around the image)
+        FloatRect bounds = player.getGlobalBounds();
+        float playerWidth = bounds.size.x;
+        float playerHeight = bounds.size.y;
 
         // Checking to make sure the player doesn't exit the game screen
         if (pos.x < 0.f)
-        {
             player.setPosition({0.f, pos.y});
-        }
+
         if (pos.y < 0.f)
-        {
             player.setPosition({pos.x, 0.f});
-        }
-        if (pos.x + playerSize > 800.f)
-        {
-            player.setPosition({800.f - playerSize, pos.y});
-        }
-        if (pos.y + playerSize > 600.f)
-        {
-            player.setPosition({pos.x, 600.f - playerSize});
-        }
+
+        if (pos.x + playerWidth > 800.f)
+            player.setPosition({800.f - playerWidth, pos.y});
+
+        if (pos.y + playerHeight > 600.f)
+            player.setPosition({pos.x, 600.f - playerHeight});
 
         // game render
         window.clear(Color::Black);
