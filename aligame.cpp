@@ -11,6 +11,9 @@ const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 const int WIDTH = 40;
 const int HEIGHT = 20;
+bool gameover = false;
+bool paused = false;//یا استفاده از pointer
+bool restartgame = false;;
 struct Bullet {
     float x, y;
     int height, width, speed;
@@ -115,6 +118,43 @@ void render(char screen[HEIGHT][WIDTH], int score) {
 
     cout << "Score: " << score << "      \n";
 }
+int showMenu() {
+    int choice;
+    do {
+        system("cls");
+        cout << "SPACE WAR GAME\n";
+        cout << "==================\n";
+        cout << "1. Start Game\n";
+        cout << "2. Instructions\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        if (choice < 1 || choice > 3) {
+            cout << "Invalid choice! Try again.\n";
+            Sleep(1000); // مکث کوتاه قبل از تکرار
+        }
+
+    } while (choice < 1 || choice > 3);
+
+    return choice;
+}
+// تابع نمایش دستورالعمل‌ها
+void showInstructions() {
+    system("cls");
+    cout << "INSTRUCTIONS:\n";
+    cout << "- Use W A S D to move your spaceship\n";
+    cout << "- Press SPACE to shoot bullets\n";
+    cout << "- Avoid enemies and shoot them\n";
+    cout << "\nPress any key to start the game...";
+    _getch();
+}
+// تابع اصلی بازی (حلقه while game loop اصلی)
+void startGame() {system("cls");
+    cout << "Game is starting...\n";
+    cout << "Press any key to return to menu...";
+    _getch();
+}
 
 int main() {
     hideCursor();
@@ -131,7 +171,26 @@ int main() {
     int enemySpawnCounter = 0;
     int score = 0;
     int enemyBaseSpeed = 2;
-    bool gameover = false;
+    bool startGamestatus = false;
+
+     //  وقتی true شد، وارد حلقه بازی می‌شویم
+    while (true) {//نشان می‌دهد که برنامه در حالت بازی است یا در حالت منو.
+        if (!startGamestatus) { // فقط وقتی بازی شروع نشده، منو نمایش داده می‌شود
+            int Choice = showMenu();
+
+            if (Choice == 1) {
+                startGamestatus = true; // حلقه بازی اجرا شود
+            } 
+            else if (Choice == 2) {
+                showInstructions();
+                startGamestatus = true; // بعد از نمایش دستورالعمل، حلقه بازی اجرا شود
+            } 
+            else if (Choice == 3) {
+                cout << "Exiting game...\n";
+                Sleep(500);
+                break; // خروج از برنامه
+            }
+        }
     while (!gameover) {
         enemySpawnCounter++;
         if (score > 10) {
@@ -157,6 +216,26 @@ int main() {
             player.x = SCREEN_WIDTH - player.width;
         }
         handleInput(player, bullets);
+                if (paused) {
+            Sleep(30);
+            continue; // ⏸️  برمی گرده اول حلقه همه‌چی فریز می‌شه
+        }
+        if (restartgame) {
+            // reset everything
+            bullets.clear();
+            enemies.clear();
+
+            player.x = SCREEN_WIDTH / 2;
+            player.y = SCREEN_HEIGHT - 50;
+
+            score = 0;
+            enemySpawnCounter = 0;
+            gameover = false;
+            paused = false;
+            restartgame = false;
+
+            continue; // برگرد اول حلقه
+        }
         for (auto &e : enemies)
         {
             e.y += e.speed;
@@ -224,4 +303,5 @@ int main() {
     cout << "GAME OVER ☠️" << endl;
     cout << "Final Score: " << score << endl;
     return 0;
+    }
 }
