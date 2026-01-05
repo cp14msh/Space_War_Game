@@ -117,12 +117,13 @@ void render(char screen[HEIGHT][WIDTH], int score) {
 }
 
 int main() {
+    hideCursor();
     Player player;
         player.x = SCREEN_WIDTH / 2;
         player.y = SCREEN_HEIGHT - 50;
         player.height = 20;
         player.width = 40;
-        player.speed = 5;
+        player.speed = 40;
     char screen[HEIGHT][WIDTH];
     vector<Bullet> bullets; // وکتوری از نوع struct Bullet
     vector<Enemy> enemies;
@@ -145,7 +146,7 @@ int main() {
             e.y = -20;
             e.width = 40;
             e.height = 20;
-            e.speed = 2;
+            e.speed = enemyBaseSpeed;
             enemies.push_back(e);
             enemySpawnCounter = 0;
         }
@@ -163,6 +164,7 @@ int main() {
                 gameover = true;
                 break;
             }
+        }
         if (gameover) {
             render(screen, score); // آخرین وضعیت بازی
             Sleep(500); 
@@ -182,6 +184,8 @@ int main() {
                     // حذف دشمن
                     enemies.erase(enemies.begin() + j);
                     j--;
+                    score++;
+                    break;
                 }
             }
         }
@@ -194,9 +198,19 @@ int main() {
         render(screen, score);
         Sleep(30);
     }
+        // حذف تیرهای خارج صفحه
+        bullets.erase(
+            std::remove_if(bullets.begin(), bullets.end(),[](Bullet &b){ return b.y < 0; }),
+            bullets.end()
+        );
+
+        // حذف دشمنان خارج صفحه
+        enemies.erase(
+            std::remove_if(enemies.begin(), enemies.end(),[](Enemy &e){ return e.y > SCREEN_HEIGHT; }),
+            enemies.end()
+        );
     system("cls");
     cout << "GAME OVER ☠️" << endl;
     cout << "Final Score: " << score << endl;
     return 0;
-    }
 }
