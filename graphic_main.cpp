@@ -3,6 +3,8 @@
 #include <iostream>
 #include <optional>
 #include <vector>
+#include <cstdlib>
+#include <ctime>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
@@ -15,12 +17,15 @@ using namespace sf;
 
 int main()
 {
+
+    srand(static_cast<unsigned>(time(NULL)));
+
     // make window for game
     RenderWindow window(VideoMode({800, 600}), "Space War Game", Style::Titlebar | Style::Close | Style::Resize);
     window.setFramerateLimit(60);
 
     // -------------------------------------------------
-    // Loading image
+    // Player
     // -------------------------------------------------
     Texture spaceshipTexture;
     if (!spaceshipTexture.loadFromFile("spaceship.png"))
@@ -37,7 +42,18 @@ int main()
     player.setPosition({350.f, 500.f});
 
     // -------------------------------------------------
-    // make vector for bullets
+    // Enemy
+    // -------------------------------------------------
+    Texture EnemyTexture;
+    if (!EnemyTexture.loadFromFile("spritesheet.png"))
+        return -1;
+    Sprite enemy(EnemyTexture);
+
+    vector<Sprite> enemies;
+    Clock enemySpawnTimer;
+
+    // -------------------------------------------------
+    // Bullets
     // -------------------------------------------------
     vector<RectangleShape> bullets;
     Clock shootTimer;
@@ -100,6 +116,7 @@ int main()
         // -------------------------------------------------
         // Shooting Logic
         // -------------------------------------------------
+
         if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.2f)
         {
             RectangleShape bullet({3.f, 20.f});
@@ -114,9 +131,7 @@ int main()
             shootTimer.restart();
         }
 
-        // -------------------------------------------------
         // remove bullets from vector
-        // -------------------------------------------------
         for (size_t i = 0; i < bullets.size(); i++)
         {
             bullets[i].move({0.f, -10.f});
@@ -125,6 +140,57 @@ int main()
             {
                 bullets.erase(bullets.begin() + i);
                 i--;
+            }
+        }
+
+        // -------------------------------------------------
+        // Enemy1 logic
+        // -------------------------------------------------
+
+        if (enemySpawnTimer.getElapsedTime().asSeconds() > 3.0f)
+        {
+            Sprite enemy(EnemyTexture);
+            enemy.setScale({1.3f, 1.3f});
+
+            float enemyWidth = enemy.getGlobalBounds().size.x;
+            float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
+
+            enemy.setPosition({randomX, -50.f});
+
+            enemies.push_back(enemy);
+
+            enemySpawnTimer.restart();
+        }
+
+        // Enemy movement
+        for (size_t i = 0; i < enemies.size(); i++)
+        {
+            enemies[i].move({0.f, 2.f});
+
+            // Clearing enemies that are off the screen
+            if (enemies[i].getPosition().y > 600.f)
+            {
+                enemies.erase(enemies.begin() + i);
+                i--;
+            }
+        }
+
+        // Checking to see if the enemy has been hit by a bullet
+        for (size_t i = 0; i < bullets.size(); i++)
+        {
+            for (size_t j = 0; j < enemies.size(); j++)
+            {
+
+                if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                {
+                    enemies.erase(enemies.begin() + j);
+
+                    bullets.erase(bullets.begin() + i);
+
+                    i--;
+
+                    break;
+                }
             }
         }
 
@@ -137,6 +203,9 @@ int main()
         {
             window.draw(bullet);
         }
+
+        for (const auto &enemy : enemies)
+            window.draw(enemy);
 
         window.display();
     }
