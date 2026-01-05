@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <optional>
+#include <vector>
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 #include <SFML/Window.hpp>
@@ -33,6 +35,12 @@ int main()
 
     // set position for player
     player.setPosition({350.f, 500.f});
+
+    // -------------------------------------------------
+    // make vector for bullets
+    // -------------------------------------------------
+    vector<RectangleShape> bullets;
+    Clock shootTimer;
 
     // game loop
     while (window.isOpen())
@@ -89,10 +97,46 @@ int main()
         if (pos.y + playerHeight > 600.f)
             player.setPosition({pos.x, 600.f - playerHeight});
 
+        // -------------------------------------------------
+        // Shooting Logic
+        // -------------------------------------------------
+        if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.2f)
+        {
+            RectangleShape bullet({3.f, 20.f});
+            bullet.setFillColor(Color::Red);
+
+            float bulletX = player.getPosition().x + (bounds.size.x / 2) - 2.5f;
+            float bulletY = player.getPosition().y;
+            bullet.setPosition({bulletX, bulletY});
+
+            bullets.push_back(bullet);
+
+            shootTimer.restart();
+        }
+
+        // -------------------------------------------------
+        // remove bullets from vector
+        // -------------------------------------------------
+        for (size_t i = 0; i < bullets.size(); i++)
+        {
+            bullets[i].move({0.f, -10.f});
+
+            if (bullets[i].getPosition().y < -20.f)
+            {
+                bullets.erase(bullets.begin() + i);
+                i--;
+            }
+        }
+
         // game render
         window.clear(Color::Black);
 
         window.draw(player);
+
+        for (const auto &bullet : bullets)
+        {
+            window.draw(bullet);
+        }
 
         window.display();
     }
