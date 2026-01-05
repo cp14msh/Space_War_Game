@@ -117,6 +117,7 @@ void render(char screen[HEIGHT][WIDTH], int score) {
 }
 
 int main() {
+    hideCursor();
     Player player;
         player.x = SCREEN_WIDTH / 2;
         player.y = SCREEN_HEIGHT - 50;
@@ -185,6 +186,17 @@ int main() {
                 }
             }
         }
+        // حذف تیرهای خارج صفحه
+        bullets.erase(
+            std::remove_if(bullets.begin(), bullets.end(),[](Bullet &b){ return b.y < 0; }),
+            bullets.end()
+        );
+
+        // حذف دشمنان خارج صفحه
+        enemies.erase(
+            std::remove_if(enemies.begin(), enemies.end(),[](Enemy &e){ return e.y > SCREEN_HEIGHT; }),
+            enemies.end()
+        );
         //آماده‌سازی Back Buffer
         clearScreen(screen);
         drawPlayer(screen, player);
