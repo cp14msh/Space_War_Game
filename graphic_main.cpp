@@ -1,4 +1,4 @@
-// g++ graphic_main.cpp -I C:\SFML-3.0.2\include -L C:\SFML-3.0.2\lib -o graphic_main.exe -lsfml-graphics -lsfml-window -lsfml-system
+// g++ graphic_main.cpp -I C:\SFML-3.0.2\include -L C:\SFML-3.0.2\lib -o graphic_main.exe -lsfml-audio -lsfml-graphics -lsfml-window -lsfml-system -mwindows
 
 #include <iostream>
 #include <optional>
@@ -11,6 +11,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
+#include <SFML/Audio.hpp>
 
 using namespace std;
 using namespace sf;
@@ -91,7 +92,30 @@ int main()
     hpText.setPosition({800.f, 30.f});
     hpText.setString("Hp: " + to_string(hp));
 
-    // game loop
+    // -------------------------------------------------
+    // Sound Effects
+    // -------------------------------------------------
+    SoundBuffer explosionBuffer;
+    if (!explosionBuffer.loadFromFile("explosion.wav"))
+    {
+
+        return -1;
+    }
+
+    Sound explosionSound(explosionBuffer);
+
+    SoundBuffer shootingBuffer;
+    if (!shootingBuffer.loadFromFile("shooting.wav"))
+    {
+
+        return -1;
+    }
+
+    Sound shootingSound(shootingBuffer);
+
+    /// -------------------------------------------------
+    // GAME LOOP
+    // -------------------------------------------------
     bool isGameOver = false;
     while (window.isOpen())
     {
@@ -154,6 +178,8 @@ int main()
 
             if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.2f)
             {
+                shootingSound.play();
+
                 RectangleShape bullet({3.f, 20.f});
                 bullet.setFillColor(Color::Red);
 
@@ -241,6 +267,7 @@ int main()
                 if (player.getGlobalBounds().findIntersection(enemies[i].getGlobalBounds()))
                 {
                     enemies.erase(enemies.begin() + i);
+                    explosionSound.play();
                     if (hp == 1)
                     {
                         isGameOver = true;
