@@ -41,6 +41,8 @@ int main()
     // set position for player
     player.setPosition({350.f, 500.f});
 
+    int hp = 3;
+
     // -------------------------------------------------
     // Enemy
     // -------------------------------------------------
@@ -58,154 +60,204 @@ int main()
     vector<RectangleShape> bullets;
     Clock shootTimer;
 
+    // -------------------------------------------------
+    // font
+    // -------------------------------------------------
+    Font font;
+    if (!font.openFromFile("font.ttf"))
+    {
+        cerr << "Error: Could not load font.ttf" << endl;
+        return -1;
+    }
+
+    Text gameOverText(font);
+    gameOverText.setString("GAME OVER");
+    gameOverText.setCharacterSize(80);
+    gameOverText.setFillColor(Color::Red);
+    gameOverText.setStyle(Text::Style::Bold);
+
+    gameOverText.setPosition({200.f, 250.f});
+
     // game loop
+    bool isGameOver = false;
     while (window.isOpen())
     {
-
-        while (const optional event = window.pollEvent())
+        if (!isGameOver)
         {
-            // As long as the game is not closed
-            if (event->is<Event::Closed>())
+            while (const optional event = window.pollEvent())
             {
-                window.close();
-            }
-        }
-
-        // Checking for keyboard key presses
-        if (Keyboard::isKeyPressed(Keyboard::Key::D))
-        {
-            player.move({5.f, 0.f});
-        }
-
-        if (Keyboard::isKeyPressed(Keyboard::Key::A))
-        {
-            player.move({-5.f, 0.f});
-        }
-
-        if (Keyboard::isKeyPressed(Keyboard::Key::W))
-        {
-            player.move({0.f, -5.f});
-        }
-
-        if (Keyboard::isKeyPressed(Keyboard::Key::S))
-        {
-            player.move({0.f, 5.f});
-        }
-
-        // vector2f give two variable
-        Vector2f pos = player.getPosition();
-
-        // Get the player's frame (the hypothetical rectangle around the image)
-        FloatRect bounds = player.getGlobalBounds();
-        float playerWidth = bounds.size.x;
-        float playerHeight = bounds.size.y;
-
-        // Checking to make sure the player doesn't exit the game screen
-        if (pos.x < 0.f)
-            player.setPosition({0.f, pos.y});
-
-        if (pos.y < 0.f)
-            player.setPosition({pos.x, 0.f});
-
-        if (pos.x + playerWidth > 800.f)
-            player.setPosition({800.f - playerWidth, pos.y});
-
-        if (pos.y + playerHeight > 600.f)
-            player.setPosition({pos.x, 600.f - playerHeight});
-
-        // -------------------------------------------------
-        // Shooting Logic
-        // -------------------------------------------------
-
-        if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.2f)
-        {
-            RectangleShape bullet({3.f, 20.f});
-            bullet.setFillColor(Color::Red);
-
-            float bulletX = player.getPosition().x + (bounds.size.x / 2) - 2.5f;
-            float bulletY = player.getPosition().y;
-            bullet.setPosition({bulletX, bulletY});
-
-            bullets.push_back(bullet);
-
-            shootTimer.restart();
-        }
-
-        // remove bullets from vector
-        for (size_t i = 0; i < bullets.size(); i++)
-        {
-            bullets[i].move({0.f, -10.f});
-
-            if (bullets[i].getPosition().y < -20.f)
-            {
-                bullets.erase(bullets.begin() + i);
-                i--;
-            }
-        }
-
-        // -------------------------------------------------
-        // Enemy1 logic
-        // -------------------------------------------------
-
-        if (enemySpawnTimer.getElapsedTime().asSeconds() > 3.0f)
-        {
-            Sprite enemy(EnemyTexture);
-            enemy.setScale({1.3f, 1.3f});
-
-            float enemyWidth = enemy.getGlobalBounds().size.x;
-            float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
-
-            enemy.setPosition({randomX, -50.f});
-
-            enemies.push_back(enemy);
-
-            enemySpawnTimer.restart();
-        }
-
-        // Enemy movement
-        for (size_t i = 0; i < enemies.size(); i++)
-        {
-            enemies[i].move({0.f, 2.f});
-
-            // Clearing enemies that are off the screen
-            if (enemies[i].getPosition().y > 600.f)
-            {
-                enemies.erase(enemies.begin() + i);
-                i--;
-            }
-        }
-
-        // Checking to see if the enemy has been hit by a bullet
-        for (size_t i = 0; i < bullets.size(); i++)
-        {
-            for (size_t j = 0; j < enemies.size(); j++)
-            {
-
-                if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                // As long as the game is not closed
+                if (event->is<Event::Closed>())
                 {
-                    enemies.erase(enemies.begin() + j);
+                    window.close();
+                }
+            }
 
+            // Checking for keyboard key presses
+            if (Keyboard::isKeyPressed(Keyboard::Key::D))
+            {
+                player.move({5.f, 0.f});
+            }
+
+            if (Keyboard::isKeyPressed(Keyboard::Key::A))
+            {
+                player.move({-5.f, 0.f});
+            }
+
+            if (Keyboard::isKeyPressed(Keyboard::Key::W))
+            {
+                player.move({0.f, -5.f});
+            }
+
+            if (Keyboard::isKeyPressed(Keyboard::Key::S))
+            {
+                player.move({0.f, 5.f});
+            }
+
+            // vector2f give two variable
+            Vector2f pos = player.getPosition();
+
+            // Get the player's frame (the hypothetical rectangle around the image)
+            FloatRect bounds = player.getGlobalBounds();
+            float playerWidth = bounds.size.x;
+            float playerHeight = bounds.size.y;
+
+            // Checking to make sure the player doesn't exit the game screen
+            if (pos.x < 0.f)
+                player.setPosition({0.f, pos.y});
+
+            if (pos.y < 0.f)
+                player.setPosition({pos.x, 0.f});
+
+            if (pos.x + playerWidth > 800.f)
+                player.setPosition({800.f - playerWidth, pos.y});
+
+            if (pos.y + playerHeight > 600.f)
+                player.setPosition({pos.x, 600.f - playerHeight});
+
+            // -------------------------------------------------
+            // Shooting Logic
+            // -------------------------------------------------
+
+            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.2f)
+            {
+                RectangleShape bullet({3.f, 20.f});
+                bullet.setFillColor(Color::Red);
+
+                float bulletX = player.getPosition().x + (bounds.size.x / 2) - 2.5f;
+                float bulletY = player.getPosition().y;
+                bullet.setPosition({bulletX, bulletY});
+
+                bullets.push_back(bullet);
+
+                shootTimer.restart();
+            }
+
+            // remove bullets from vector
+            for (size_t i = 0; i < bullets.size(); i++)
+            {
+                bullets[i].move({0.f, -10.f});
+
+                if (bullets[i].getPosition().y < -20.f)
+                {
                     bullets.erase(bullets.begin() + i);
+                    i--;
+                }
+            }
+
+            // -------------------------------------------------
+            // Enemy1 logic
+            // -------------------------------------------------
+
+            if (enemySpawnTimer.getElapsedTime().asSeconds() > 2.0f)
+            {
+                Sprite enemy(EnemyTexture);
+                enemy.setScale({1.3f, 1.3f});
+
+                float enemyWidth = enemy.getGlobalBounds().size.x;
+                float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
+
+                enemy.setPosition({randomX, -50.f});
+
+                enemies.push_back(enemy);
+
+                enemySpawnTimer.restart();
+            }
+
+            // Enemy movement
+            for (size_t i = 0; i < enemies.size(); i++)
+            {
+                enemies[i].move({0.f, 2.f});
+
+                // Clearing enemies that are off the screen
+                if (enemies[i].getPosition().y > 600.f)
+                {
+                    enemies.erase(enemies.begin() + i);
+                    i--;
+                }
+            }
+
+            // Checking to see if the enemy has been hit by a bullet
+            for (size_t i = 0; i < bullets.size(); i++)
+            {
+                for (size_t j = 0; j < enemies.size(); j++)
+                {
+
+                    if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                    {
+                        enemies.erase(enemies.begin() + j);
+
+                        bullets.erase(bullets.begin() + i);
+
+                        i--;
+
+                        break;
+                    }
+                }
+            }
+
+            // -------------------------------------------------
+            // Hitting the enemy with a ship
+            // -------------------------------------------------
+
+            for (size_t i = 0; i < enemies.size(); i++)
+            {
+                if (player.getGlobalBounds().findIntersection(enemies[i].getGlobalBounds()))
+                {
+                    enemies.erase(enemies.begin() + i);
+                    if (hp == 1)
+                    {
+                        isGameOver = true;
+                    }
+                    else
+                    {
+                        hp -= 1;
+                        break;
+                    }
 
                     i--;
-
-                    break;
                 }
             }
         }
 
         // game render
         window.clear(Color::Black);
-
-        window.draw(player);
-
-        for (const auto &bullet : bullets)
+        if (isGameOver)
         {
-            window.draw(bullet);
-        }
 
-        for (const auto &enemy : enemies)
-            window.draw(enemy);
+            window.draw(gameOverText);
+        }
+        else
+        {
+
+            window.draw(player);
+
+            for (const auto &bullet : bullets)
+                window.draw(bullet);
+
+            for (const auto &enemy : enemies)
+                window.draw(enemy);
+        }
 
         window.display();
     }
