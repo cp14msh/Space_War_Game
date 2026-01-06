@@ -21,7 +21,7 @@ int main()
     srand(static_cast<unsigned>(time(NULL)));
 
     // make window for game
-    RenderWindow window(VideoMode({800, 600}), "Space War Game", Style::Titlebar | Style::Close | Style::Resize);
+    RenderWindow window(VideoMode({870, 600}), "Space War Game", Style::Titlebar | Style::Close | Style::Resize);
     window.setFramerateLimit(60);
 
     // -------------------------------------------------
@@ -36,12 +36,13 @@ int main()
 
     // Paste the image into the sprite
     Sprite player(spaceshipTexture);
-    player.setScale({1.4f, 1.4f});
+    player.setScale({1.3f, 1.3f});
 
     // set position for player
     player.setPosition({350.f, 500.f});
 
     int hp = 3;
+    int score = 0;
 
     // -------------------------------------------------
     // Enemy
@@ -77,6 +78,18 @@ int main()
     gameOverText.setStyle(Text::Style::Bold);
 
     gameOverText.setPosition({200.f, 250.f});
+
+    Text scoreText(font);
+    scoreText.setCharacterSize(15);
+    scoreText.setFillColor(Color::White);
+    scoreText.setPosition({800.f, 10.f});
+    scoreText.setString("Score: " + to_string(score));
+
+    Text hpText(font);
+    hpText.setCharacterSize(15);
+    hpText.setFillColor(Color::White);
+    hpText.setPosition({800.f, 30.f});
+    hpText.setString("Hp: " + to_string(hp));
 
     // game loop
     bool isGameOver = false;
@@ -172,7 +185,7 @@ int main()
             if (enemySpawnTimer.getElapsedTime().asSeconds() > 2.0f)
             {
                 Sprite enemy(EnemyTexture);
-                enemy.setScale({1.3f, 1.3f});
+                enemy.setScale({1.0f, 1.0f});
 
                 float enemyWidth = enemy.getGlobalBounds().size.x;
                 float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
@@ -205,6 +218,9 @@ int main()
 
                     if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
                     {
+                        score += 1;
+                        scoreText.setString("Score: " + to_string(score));
+
                         enemies.erase(enemies.begin() + j);
 
                         bullets.erase(bullets.begin() + i);
@@ -232,6 +248,7 @@ int main()
                     else
                     {
                         hp -= 1;
+                        hpText.setString("Hp: " + to_string(hp));
                         break;
                     }
 
@@ -251,6 +268,8 @@ int main()
         {
 
             window.draw(player);
+            window.draw(scoreText);
+            window.draw(hpText);
 
             for (const auto &bullet : bullets)
                 window.draw(bullet);
