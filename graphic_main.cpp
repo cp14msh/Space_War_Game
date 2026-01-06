@@ -22,7 +22,7 @@ int main()
     srand(static_cast<unsigned>(time(NULL)));
 
     // make window for game
-    RenderWindow window(VideoMode({870, 600}), "Space War Game", Style::Titlebar | Style::Close | Style::Resize);
+    RenderWindow window(VideoMode({800, 600}), "Space War Game", Style::Titlebar | Style::Close | Style::Resize);
     window.setFramerateLimit(60);
 
     // -------------------------------------------------
@@ -42,8 +42,35 @@ int main()
     // set position for player
     player.setPosition({350.f, 500.f});
 
+    // player_hp
     int hp = 3;
+    Texture hpTexture;
+    if (!hpTexture.loadFromFile("heart.png"))
+    {
+        cerr << "Error: Could not load heart.png!" << endl;
+        return -1;
+    }
+
+    Sprite player_hp(hpTexture);
+    player_hp.setScale({1.1f, 1.1f});
+
+    // set position for player_hp
+    player_hp.setPosition({5.f, 5.f});
+
+    // player_score
     int score = 0;
+    Texture scoreTexture;
+    if (!scoreTexture.loadFromFile("score.png"))
+    {
+        cerr << "Error: Could not load score.png!" << endl;
+        return -1;
+    }
+
+    Sprite player_score(scoreTexture);
+    player_score.setScale({0.15f, 0.15f});
+
+    // set position for player_hp
+    player_score.setPosition({12.f, 45.f});
 
     // -------------------------------------------------
     // Enemy
@@ -63,7 +90,7 @@ int main()
     Clock shootTimer;
 
     // -------------------------------------------------
-    // font
+    // Text
     // -------------------------------------------------
     Font font;
     if (!font.openFromFile("font.ttf"))
@@ -78,19 +105,20 @@ int main()
     gameOverText.setFillColor(Color::Red);
     gameOverText.setStyle(Text::Style::Bold);
 
-    gameOverText.setPosition({200.f, 250.f});
+    gameOverText.setPosition({150.f, 250.f});
 
     Text scoreText(font);
     scoreText.setCharacterSize(15);
     scoreText.setFillColor(Color::White);
-    scoreText.setPosition({800.f, 10.f});
-    scoreText.setString("Score: " + to_string(score));
+    scoreText.setPosition({41.f, 46.f});
+    scoreText.setString(to_string(score));
 
     Text hpText(font);
     hpText.setCharacterSize(15);
     hpText.setFillColor(Color::White);
-    hpText.setPosition({800.f, 30.f});
-    hpText.setString("Hp: " + to_string(hp));
+    hpText.setStyle(Text::Style::Bold);
+    hpText.setPosition({40.f, 14.f});
+    hpText.setString(to_string(hp));
 
     // -------------------------------------------------
     // Sound Effects
@@ -101,7 +129,6 @@ int main()
 
         return -1;
     }
-
     Sound explosionSound(explosionBuffer);
 
     SoundBuffer shootingBuffer;
@@ -110,8 +137,15 @@ int main()
 
         return -1;
     }
-
     Sound shootingSound(shootingBuffer);
+
+    SoundBuffer hit_enemy1Buffer;
+    if (!hit_enemy1Buffer.loadFromFile("hit01.wav"))
+    {
+
+        return -1;
+    }
+    Sound hit_enemy1Sound(hit_enemy1Buffer);
 
     /// -------------------------------------------------
     // GAME LOOP
@@ -119,17 +153,18 @@ int main()
     bool isGameOver = false;
     while (window.isOpen())
     {
+
+        while (const optional event = window.pollEvent())
+        {
+            // As long as the game is not closed
+            if (event->is<Event::Closed>())
+            {
+                window.close();
+            }
+        }
+
         if (!isGameOver)
         {
-            while (const optional event = window.pollEvent())
-            {
-                // As long as the game is not closed
-                if (event->is<Event::Closed>())
-                {
-                    window.close();
-                }
-            }
-
             // Checking for keyboard key presses
             if (Keyboard::isKeyPressed(Keyboard::Key::D))
             {
@@ -244,8 +279,10 @@ int main()
 
                     if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
                     {
+                        hit_enemy1Sound.play();
+
                         score += 1;
-                        scoreText.setString("Score: " + to_string(score));
+                        scoreText.setString(to_string(score));
 
                         enemies.erase(enemies.begin() + j);
 
@@ -275,7 +312,7 @@ int main()
                     else
                     {
                         hp -= 1;
-                        hpText.setString("Hp: " + to_string(hp));
+                        hpText.setString(to_string(hp));
                         break;
                     }
 
@@ -295,6 +332,8 @@ int main()
         {
 
             window.draw(player);
+            window.draw(player_hp);
+            window.draw(player_score);
             window.draw(scoreText);
             window.draw(hpText);
 
