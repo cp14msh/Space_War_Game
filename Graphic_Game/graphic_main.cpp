@@ -354,6 +354,34 @@ int main()
         if (isGameOver)
         {
             window.draw(board);
+            if (Mouse::isButtonPressed(Mouse::Button::Left))
+            {
+                Vector2f mouseF = {(float)mousePos.x, (float)mousePos.y};
+
+                FloatRect yesRect({295.f, 346.f}, {85.f, 37.f});
+
+                if (yesRect.contains(mouseF))
+                {
+                    isGameOver = false;
+                    hp = 3;
+                    score = 0;
+                    enemies.clear();
+                    bullets.clear();
+
+                    scoreText.setString("0");
+                    score = 0;
+                    hpText.setString("3");
+                    hp = 3;
+                    player.setPosition({350.f, 500.f});
+                }
+
+                FloatRect noRect({416.f, 347.f}, {93.f, 37.f});
+
+                if (noRect.contains(mouseF))
+                {
+                    window.close();
+                }
+            }
         }
         else
         {
