@@ -73,9 +73,22 @@ void clearScreen(char screen[HEIGHT][WIDTH]) {//پاک کردن buffer در اب
 void drawPlayer(char screen[HEIGHT][WIDTH], Player &player) {//تغییر جدید
     int x = (int)(player.x / (SCREEN_WIDTH / WIDTH));
     int y = (int)(player.y / (SCREEN_HEIGHT / HEIGHT));
+    if (y-1 >= 0) {
+            screen[y-1][x] = '^';
+    }
 
-    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-        screen[y][x] = 'A';  // A = سفینه
+    if (x-1 >= 0 && x+1 < WIDTH) {
+        screen[y][x-1] = '/';
+        screen[y][x]   = '|';
+        screen[y][x+1] = '\\';
+    }
+
+    if (y+1 < HEIGHT && x-2 >= 0 && x+2 < WIDTH) {
+        screen[y+1][x-2] = '<';
+        screen[y+1][x-1] = '_';
+        screen[y+1][x]   = '|';
+        screen[y+1][x+1] = '_';
+        screen[y+1][x+2] = '>';
     }
 }
 void drawBullets(char screen[HEIGHT][WIDTH], vector<Bullet> &bullets) {//تغییر جدید : مقیاس پدیری موقعیت ها با صفحه نمایش
@@ -225,7 +238,7 @@ int main() {
         }
         if (enemySpawnCounter > enemyinterval) {
             Enemy e;
-            e.x = rand() % SCREE;
+            e.x = rand() % SCREEN_WIDTH;
             e.y = 0;
             e.width = 40;
             e.height = 20;
