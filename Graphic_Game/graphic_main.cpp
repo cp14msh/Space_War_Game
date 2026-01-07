@@ -99,14 +99,6 @@ int main()
         return -1;
     }
 
-    Text gameOverText(font);
-    gameOverText.setString("GAME OVER");
-    gameOverText.setCharacterSize(80);
-    gameOverText.setFillColor(Color::Red);
-    gameOverText.setStyle(Text::Style::Bold);
-
-    gameOverText.setPosition({150.f, 250.f});
-
     Text scoreText(font);
     scoreText.setCharacterSize(15);
     scoreText.setFillColor(Color::White);
@@ -256,7 +248,7 @@ int main()
                 shootingSound.play();
 
                 RectangleShape bullet({3.f, 20.f});
-                bullet.setFillColor(Color::Red);
+                bullet.setFillColor(Color::Yellow);
 
                 float bulletX = player.getPosition().x + (bounds.size.x / 2) - 2.5f;
                 float bulletY = player.getPosition().y;
@@ -367,6 +359,8 @@ int main()
         if (isGameOver)
         {
             window.draw(board);
+            window.draw(player_score);
+            window.draw(scoreText);
             if (Mouse::isButtonPressed(Mouse::Button::Left))
             {
                 Vector2f mouseF = {(float)mousePos.x, (float)mousePos.y};
