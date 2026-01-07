@@ -14,7 +14,12 @@ const int WIDTH = 40;
 const int HEIGHT = 20;
 bool gameover = false;
 bool paused = false;//یا استفاده از pointer
-bool restartgame = false;;
+bool restartgame = false;
+enum EnemyType {
+    ENEMY_BASIC,
+    ENEMY_Intermediate,
+    ENEMY_SHOOTER
+};
 struct Bullet {
     float x, y;
     int height, width, speed;
@@ -26,6 +31,7 @@ struct Player {
 struct Enemy {
     float x, y;
     int height, width, speed;
+    EnemyType type;
 };
 void handleInput(Player &player, vector<Bullet> &bullets)
 {
@@ -105,9 +111,36 @@ void drawEnemies(char screen[HEIGHT][WIDTH], vector<Enemy> &enemies) {//تغیی
         int x = (int)(e.x / (SCREEN_WIDTH / WIDTH));
         int y = (int)(e.y / (SCREEN_HEIGHT / HEIGHT));
 
-        if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
-            screen[y][x] = 'X';
-    }
+        const char* shape;
+        int shapeWidth;
+        switch (e.type) {
+            case ENEMY_BASIC:
+                shape = "<^>";
+                shapeWidth = 3;
+                break;
+
+            case ENEMY_Intermediate:
+                shape = "/X\\";
+                shapeWidth = 3;
+                break;
+
+            case ENEMY_SHOOTER:
+                shape = "~v~";
+                shapeWidth = 3;
+                break;
+
+            default:
+                continue;
+        }
+        int startX = x - shapeWidth / 2;
+        for (int i = 0; i < shapeWidth; i++) {
+            int drawX = startX + i;
+
+            if (drawX >= 0 && drawX < WIDTH && y >= 0 && y < HEIGHT) {
+                screen[y][drawX] = shape[i];
+            }
+        }
+    } 
 }
 void moveCursorToTop() {
     COORD coord = {0, 0};
