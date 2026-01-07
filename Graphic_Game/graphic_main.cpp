@@ -126,7 +126,6 @@ int main()
     SoundBuffer explosionBuffer;
     if (!explosionBuffer.loadFromFile("explosion.wav"))
     {
-
         return -1;
     }
     Sound explosionSound(explosionBuffer);
@@ -134,7 +133,6 @@ int main()
     SoundBuffer shootingBuffer;
     if (!shootingBuffer.loadFromFile("shooting.wav"))
     {
-
         return -1;
     }
     Sound shootingSound(shootingBuffer);
@@ -142,10 +140,16 @@ int main()
     SoundBuffer hit_enemy1Buffer;
     if (!hit_enemy1Buffer.loadFromFile("hit01.wav"))
     {
-
         return -1;
     }
     Sound hit_enemy1Sound(hit_enemy1Buffer);
+
+    SoundBuffer game_over_Buffer;
+    if (!game_over_Buffer.loadFromFile("Game_Over.wav"))
+    {
+        return -1;
+    }
+    Sound game_over_sound(game_over_Buffer);
 
     /// -------------------------------------------------
     // POINTER
@@ -336,6 +340,7 @@ int main()
                     if (hp == 1)
                     {
                         isGameOver = true;
+                        game_over_sound.play();
                     }
                     else
                     {
