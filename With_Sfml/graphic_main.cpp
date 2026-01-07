@@ -1,4 +1,4 @@
-// g++ graphic_main.cpp -I C:\SFML-3.0.2\include -L C:\SFML-3.0.2\lib -o graphic_main.exe -lsfml-audio -lsfml-graphics -lsfml-window -lsfml-system -mwindows
+// g++ graphic_main.cpp resource.o -I C:\SFML-3.0.2\include -L C:\SFML-3.0.2\lib -o graphic_main.exe -lsfml-audio -lsfml-graphics -lsfml-window -lsfml-system -mwindows
 
 #include <iostream>
 #include <optional>
@@ -11,7 +11,6 @@
 #include <SFML/Window.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
-#include <SFML/Audio.hpp>
 
 using namespace std;
 using namespace sf;
@@ -332,16 +331,17 @@ int main()
         {
 
             window.draw(player);
-            window.draw(player_hp);
-            window.draw(player_score);
-            window.draw(scoreText);
-            window.draw(hpText);
 
             for (const auto &bullet : bullets)
                 window.draw(bullet);
 
             for (const auto &enemy : enemies)
                 window.draw(enemy);
+
+            window.draw(player_hp);
+            window.draw(player_score);
+            window.draw(scoreText);
+            window.draw(hpText);
         }
 
         window.display();
