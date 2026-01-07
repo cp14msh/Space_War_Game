@@ -22,6 +22,7 @@ int main()
 
     // make window for game
     RenderWindow window(VideoMode({800, 600}), "Space War Game", Style::Titlebar | Style::Close | Style::Resize);
+    window.setMouseCursorVisible(false);
     window.setFramerateLimit(60);
 
     // -------------------------------------------------
@@ -147,6 +148,31 @@ int main()
     Sound hit_enemy1Sound(hit_enemy1Buffer);
 
     /// -------------------------------------------------
+    // POINTER
+    // -------------------------------------------------
+    Texture pointerTexture;
+    if (!pointerTexture.loadFromFile("pointer.png"))
+    {
+        cerr << "Error: Could not load pointer.png!" << endl;
+        return -1;
+    }
+
+    // Paste the image into the sprite
+    Sprite pointer(pointerTexture);
+    pointer.setScale({0.1f, 0.1f});
+
+    /// -------------------------------------------------
+    // GAME_OVER
+    // -------------------------------------------------
+    Texture boardTexture;
+    if (!boardTexture.loadFromFile("game_over.jpg"))
+        return -1;
+    Sprite board(boardTexture);
+
+    board.setScale({0.39f, 0.42f});
+    board.setPosition({0.f, 0.f});
+
+    /// -------------------------------------------------
     // GAME LOOP
     // -------------------------------------------------
     bool isGameOver = false;
@@ -161,6 +187,9 @@ int main()
                 window.close();
             }
         }
+
+        Vector2i mousePos = Mouse::getPosition(window);
+        pointer.setPosition({(float)mousePos.x, (float)mousePos.y});
 
         if (!isGameOver)
         {
@@ -324,8 +353,7 @@ int main()
         window.clear(Color::Black);
         if (isGameOver)
         {
-
-            window.draw(gameOverText);
+            window.draw(board);
         }
         else
         {
@@ -343,7 +371,7 @@ int main()
             window.draw(scoreText);
             window.draw(hpText);
         }
-
+        window.draw(pointer);
         window.display();
     }
 }
