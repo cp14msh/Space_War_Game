@@ -166,7 +166,7 @@ int main()
     pointer.setScale({0.1f, 0.1f});
 
     /// -------------------------------------------------
-    // GAME_OVER
+    // GAME_Board
     // -------------------------------------------------
     Texture boardTexture;
     if (!boardTexture.loadFromFile("game_over.jpg"))
@@ -175,6 +175,14 @@ int main()
 
     board.setScale({0.39f, 0.42f});
     board.setPosition({0.f, 0.f});
+
+    Texture board2Texture;
+    if (!board2Texture.loadFromFile("game_board.png"))
+        return -1;
+    Sprite board2(board2Texture);
+
+    board2.setScale({0.39f, 0.42f});
+    board2.setPosition({0.f, 0.f});
 
     /// -------------------------------------------------
     // GAME LOOP
@@ -390,7 +398,7 @@ int main()
         }
         else
         {
-
+            window.draw(board2);
             window.draw(player);
 
             for (const auto &bullet : bullets)
