@@ -5,6 +5,7 @@
 #include <ctime>
 #include <windows.h>
 #include <algorithm>
+#include <fstream>
 using namespace std;
 
 const int SCREEN_WIDTH = 800;
@@ -155,6 +156,22 @@ void startGame() {system("cls");
     cout << "Press any key to return to menu...";
     _getch();
 }
+int loadHighScore() {
+    ifstream file("highscore.txt");
+    int highScore = 0;
+    if (file.is_open()) {
+        file >> highScore;  // خواندن مقدار قبلی
+        file.close();
+    }
+    return highScore;
+}
+void saveHighScore(int score) {
+    ofstream file("highscore.txt");
+    if (file.is_open()) {
+        file << score;
+        file.close();
+    }
+}
 
 int main() {
     hideCursor();
@@ -172,6 +189,7 @@ int main() {
     int score = 0;
     int enemyBaseSpeed = 2;
     bool startGamestatus = false;
+    int highscore = loadHighScore();
 
      //  وقتی true شد، وارد حلقه بازی می‌شویم
     while (true) {//نشان می‌دهد که برنامه در حالت بازی است یا در حالت منو.
@@ -193,6 +211,9 @@ int main() {
         }
     while (!gameover) {
         enemySpawnCounter++;
+
+        cout << "High Score: " << highscore << endl;
+        
         if (score > 10) {
             enemyBaseSpeed = 3;
         }
