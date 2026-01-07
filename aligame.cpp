@@ -187,7 +187,9 @@ int main() {
     srand(time(0));
     int enemySpawnCounter = 0;
     int score = 0;
-    int enemyBaseSpeed = 2;
+    int framenum = 0;
+    int enemyBaseSpeed = 3 + framenum / 1000.0;
+    int enemyinterval = max(10, 50 - framenum / 1000); // فاصله ظاهر شدن دشمن‌ها کاهش پیدا می‌کند
     bool startGamestatus = false;
     int highscore = loadHighScore();
 
@@ -211,19 +213,20 @@ int main() {
         }
     while (!gameover) {
         enemySpawnCounter++;
+        framenum++;
 
         cout << "High Score: " << highscore << endl;
-        
+
         if (score > 10) {
-            enemyBaseSpeed = 3;
-        }
-        if (score > 20) {
             enemyBaseSpeed = 4;
         }
-        if (enemySpawnCounter > 50) {
+        if (score > 20) {
+            enemyBaseSpeed = 5;
+        }
+        if (enemySpawnCounter > enemyinterval) {
             Enemy e;
-            e.x = rand() % 760;
-            e.y = -20;
+            e.x = rand() % SCREE;
+            e.y = 0;
             e.width = 40;
             e.height = 20;
             e.speed = enemyBaseSpeed;
