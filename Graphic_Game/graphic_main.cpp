@@ -143,6 +143,20 @@ int main()
     }
     Sound game_over_sound(game_over_Buffer);
 
+    SoundBuffer YES_Buffer;
+    if (!YES_Buffer.loadFromFile("YES.flac"))
+    {
+        return -1;
+    }
+    Sound YES_sound(YES_Buffer);
+
+    SoundBuffer NO_Buffer;
+    if (!NO_Buffer.loadFromFile("NO.flac"))
+    {
+        return -1;
+    }
+    Sound NO_sound(NO_Buffer);
+
     /// -------------------------------------------------
     // POINTER
     // -------------------------------------------------
@@ -369,6 +383,7 @@ int main()
 
                 if (yesRect.contains(mouseF))
                 {
+                    YES_sound.play();
                     isGameOver = false;
                     hp = 3;
                     score = 0;
@@ -386,6 +401,7 @@ int main()
 
                 if (noRect.contains(mouseF))
                 {
+                    NO_sound.play();
                     window.close();
                 }
             }
