@@ -150,13 +150,6 @@ int main()
     }
     Sound YES_sound(YES_Buffer);
 
-    SoundBuffer NO_Buffer;
-    if (!NO_Buffer.loadFromFile("NO.flac"))
-    {
-        return -1;
-    }
-    Sound NO_sound(NO_Buffer);
-
     /// -------------------------------------------------
     // POINTER
     // -------------------------------------------------
@@ -401,7 +394,6 @@ int main()
 
                 if (noRect.contains(mouseF))
                 {
-                    NO_sound.play();
                     window.close();
                 }
             }
