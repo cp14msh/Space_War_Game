@@ -29,6 +29,13 @@ struct Enemy3
     Enemy3(const Texture &texture) : sprite(texture), health(4) {}
 };
 
+struct Enemy4
+{
+    Sprite sprite;
+    int health;
+    Enemy4(const Texture &texture) : sprite(texture), health(8) {}
+};
+
 int main()
 {
 
@@ -128,7 +135,7 @@ int main()
         return -1;
     Sprite enemy4(Enemy4Texture);
 
-    vector<Sprite> enemies4;
+    vector<Enemy4> enemies4;
     Clock enemy4SpawnTimer;
 
     // -------------------------------------------------
@@ -138,11 +145,18 @@ int main()
     Clock shootTimer;
 
     Texture Enemy3_BulletsTexture;
-    if (!Enemy3_BulletsTexture.loadFromFile("enemy2_bullets.png"))
+    if (!Enemy3_BulletsTexture.loadFromFile("enemy3_bullets.png"))
         return -1;
     Sprite enemy3_bullet(Enemy3_BulletsTexture);
     vector<Sprite> enemy3_bullets;
     Clock enemy3_shootTimer;
+
+    Texture Enemy4_BulletsTexture;
+    if (!Enemy4_BulletsTexture.loadFromFile("enemy4_bullets.png"))
+        return -1;
+    Sprite enemy4_bullet(Enemy4_BulletsTexture);
+    vector<Sprite> enemy4_bullets;
+    Clock enemy4_shootTimer;
 
     // -------------------------------------------------
     // Text
@@ -566,14 +580,14 @@ int main()
                 {
                     enemies3.erase(enemies3.begin() + i);
                     explosionSound.play();
-                    if (hp == 2 || hp == 1)
+                    if (hp == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else if (hp == 3)
+                    else if (hp == 3 || hp == 2)
                     {
-                        hp -= 2;
+                        hp -= 1;
                         hpText.setString(to_string(hp));
                         break;
                     }
@@ -639,15 +653,16 @@ int main()
 
             if (enemy4SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 80)
             {
-                Sprite enemy4(Enemy4Texture);
-                enemy4.setScale({1.3f, 1.3f});
+                Enemy4 newEnemy4(Enemy4Texture);
+                newEnemy4.sprite.setScale({1.3f, 1.3f});
 
                 float enemy4Width = enemy4.getGlobalBounds().size.x;
                 float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemy4Width));
 
-                enemy4.setPosition({randomX, -50.f});
+                newEnemy4.sprite.setPosition({randomX, -50.f});
+                newEnemy4.health = 8;
 
-                enemies4.push_back(enemy4);
+                enemies4.push_back(newEnemy4);
 
                 enemy4SpawnTimer.restart();
             }
@@ -655,10 +670,10 @@ int main()
             // Enemy4 movement
             for (size_t i = 0; i < enemies4.size(); i++)
             {
-                enemies4[i].move({0.f, 1.f});
+                enemies4[i].sprite.move({0.f, 1.f});
 
                 // Clearing enemies that are off the screen
-                if (enemies4[i].getPosition().y > 600.f)
+                if (enemies4[i].sprite.getPosition().y > 600.f)
                 {
                     enemies4.erase(enemies4.begin() + i);
                     i--;
@@ -671,14 +686,19 @@ int main()
                 for (size_t j = 0; j < enemies4.size(); j++)
                 {
 
-                    if (bullets[i].getGlobalBounds().findIntersection(enemies4[j].getGlobalBounds()))
+                    if (bullets[i].getGlobalBounds().findIntersection(enemies4[j].sprite.getGlobalBounds()))
                     {
                         hit_enemy1Sound.play();
 
-                        score += 3;
+                        score += 5;
                         scoreText.setString(to_string(score));
 
-                        enemies4.erase(enemies4.begin() + j);
+                        enemies4[j].health--;
+                        if (enemies4[j].health <= 0)
+                        {
+                            enemies4.erase(enemies4.begin() + j);
+                            j--;
+                        }
 
                         bullets.erase(bullets.begin() + i);
 
@@ -693,9 +713,58 @@ int main()
 
             for (size_t i = 0; i < enemies4.size(); i++)
             {
-                if (player.getGlobalBounds().findIntersection(enemies4[i].getGlobalBounds()))
+                if (player.getGlobalBounds().findIntersection(enemies4[i].sprite.getGlobalBounds()))
                 {
                     enemies4.erase(enemies4.begin() + i);
+                    explosionSound.play();
+                    if (hp == 1)
+                    {
+                        isGameOver = true;
+                        game_over_sound.play();
+                    }
+                    else if (hp == 3 || hp == 2)
+                    {
+                        hp -= 1;
+                        hpText.setString(to_string(hp));
+                        break;
+                    }
+
+                    i--;
+                }
+            }
+
+            FloatRect enemy4_bounds = enemy4.getGlobalBounds();
+
+            // enemy4_shooting
+
+            if (enemy4_shootTimer.getElapsedTime().asSeconds() > 3.2f)
+            {
+                for (size_t i = 0; i < enemies4.size(); i++)
+                {
+                    Sprite bullet_l(Enemy4_BulletsTexture);
+                    Sprite bullet_r(Enemy4_BulletsTexture);
+
+                    float bulletX_l = enemies4[i].sprite.getPosition().x + enemy4_bounds.size.x / 2 - 17;
+                    float bulletX_r = enemies4[i].sprite.getPosition().x + enemy4_bounds.size.x / 2 + 10;
+
+                    float bulletY = enemies4[i].sprite.getPosition().y + enemy4_bounds.size.y - 4;
+
+                    bullet_l.setPosition({bulletX_l, bulletY});
+                    bullet_r.setPosition({bulletX_r, bulletY});
+
+                    enemy4_bullets.push_back(bullet_l);
+                    enemy4_bullets.push_back(bullet_r);
+
+                    enemy4_shootTimer.restart();
+                }
+                enemy4_shootTimer.restart();
+            }
+
+            for (size_t i = 0; i < enemy4_bullets.size(); i++)
+            {
+                if (player.getGlobalBounds().findIntersection(enemy4_bullets[i].getGlobalBounds()))
+                {
+                    enemy4_bullets.erase(enemy4_bullets.begin() + i);
                     explosionSound.play();
                     if (hp == 1)
                     {
@@ -709,6 +778,17 @@ int main()
                         break;
                     }
 
+                    i--;
+                }
+            }
+
+            // remove enemy4_bullets from vector
+            for (size_t i = 0; i < enemy4_bullets.size(); i++)
+            {
+                enemy4_bullets[i].move({0.f, 3.f});
+                if (enemy4_bullets[i].getPosition().y > 620.f)
+                {
+                    enemy4_bullets.erase(enemy4_bullets.begin() + i);
                     i--;
                 }
             }
@@ -776,7 +856,10 @@ int main()
                 window.draw(enemy3_bullet);
 
             for (const auto &enemy4 : enemies4)
-                window.draw(enemy4);
+                window.draw(enemy4.sprite);
+
+            for (const auto &enemy4_bullet : enemy4_bullets)
+                window.draw(enemy4_bullet);
 
             window.draw(player_hp);
             window.draw(player_score);
