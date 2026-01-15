@@ -305,7 +305,7 @@ int main()
             // Shooting Logic
             // -------------------------------------------------
 
-            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.2f)
+            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.4f)
             {
                 shootingSound.play();
 
@@ -566,12 +566,12 @@ int main()
                 {
                     enemies3.erase(enemies3.begin() + i);
                     explosionSound.play();
-                    if (hp < 2)
+                    if (hp == 2 || hp == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else
+                    else if (hp == 3)
                     {
                         hp -= 2;
                         hpText.setString(to_string(hp));
