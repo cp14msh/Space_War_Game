@@ -36,6 +36,12 @@ struct Enemy4
     Enemy4(const Texture &texture) : sprite(texture), health(8) {}
 };
 
+struct PowerUp
+{
+    Sprite sprite;
+    PowerUp(const Texture &texture) : sprite(texture) {}
+};
+
 int main()
 {
 
@@ -93,6 +99,21 @@ int main()
     // set position for player_hp
     player_score.setPosition({12.f, 45.f});
 
+    // player_weapon_level
+    int weapon_level = 1;
+    Texture weaponlevelTexture;
+    if (!weaponlevelTexture.loadFromFile("weapon_level.png"))
+    {
+        cerr << "Error: Could not load score.png!" << endl;
+        return -1;
+    }
+
+    Sprite player_weapon_level(weaponlevelTexture);
+    player_weapon_level.setScale({0.18f, 0.18f});
+
+    // set position for player_weapon_level
+    player_weapon_level.setPosition({10.f, 77.f});
+
     // -------------------------------------------------
     // Enemy1
     // -------------------------------------------------
@@ -139,6 +160,19 @@ int main()
     Clock enemy4SpawnTimer;
 
     // -------------------------------------------------
+    // PowerUp
+    // -------------------------------------------------
+    Texture powerUpTexture;
+    if (!powerUpTexture.loadFromFile("obituary.png"))
+    {
+        cerr << "Error: Could not load obituary.png!" << endl;
+        return -1;
+    }
+    vector<PowerUp> powerUps;
+    Clock powerUpSpawnTimer;
+    const float POWERUP_SPAWN_RATE = 10.0f;
+
+    // -------------------------------------------------
     // Bullets
     // -------------------------------------------------
     vector<RectangleShape> bullets;
@@ -180,6 +214,12 @@ int main()
     hpText.setStyle(Text::Style::Bold);
     hpText.setPosition({40.f, 14.f});
     hpText.setString(to_string(hp));
+
+    Text weapon_levelText(font);
+    weapon_levelText.setCharacterSize(15);
+    weapon_levelText.setFillColor(Color::White);
+    weapon_levelText.setPosition({42.f, 78.5f});
+    weapon_levelText.setString(to_string(weapon_level));
 
     // -------------------------------------------------
     // Sound Effects
@@ -792,6 +832,48 @@ int main()
                     i--;
                 }
             }
+
+            // -------------------------------------------------
+            // PowerUp Logic (New Addition)
+            // -------------------------------------------------
+            if (powerUpSpawnTimer.getElapsedTime().asSeconds() > POWERUP_SPAWN_RATE && score > 50)
+            {
+                PowerUp newPowerUp(powerUpTexture);
+                newPowerUp.sprite.setScale({0.2f, 0.2f});
+
+                float powerUpWidth = newPowerUp.sprite.getGlobalBounds().size.x;
+                float randomX = static_cast<float>(rand() % static_cast<int>(800 - powerUpWidth));
+
+                newPowerUp.sprite.setPosition({randomX, -50.f});
+
+                powerUps.push_back(newPowerUp);
+                powerUpSpawnTimer.restart();
+            }
+
+            // PowerUp movement and collision
+            for (size_t i = 0; i < powerUps.size(); i++)
+            {
+                powerUps[i].sprite.move({0.f, 1.f});
+
+                if (player.getGlobalBounds().findIntersection(powerUps[i].sprite.getGlobalBounds()))
+                {
+                    powerUps.erase(powerUps.begin() + i);
+                    if (weapon_level < 5)
+                    {
+                        weapon_level += 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    i--;
+                    continue;
+                }
+
+                // Clearing powerUps that are off the screen
+                if (powerUps[i].sprite.getPosition().y > 600.f)
+                {
+                    powerUps.erase(powerUps.begin() + i);
+                    i--;
+                }
+            }
         }
 
         // game render
@@ -861,10 +943,15 @@ int main()
             for (const auto &enemy4_bullet : enemy4_bullets)
                 window.draw(enemy4_bullet);
 
+            for (const auto &pu : powerUps)
+                window.draw(pu.sprite);
+
             window.draw(player_hp);
             window.draw(player_score);
             window.draw(scoreText);
             window.draw(hpText);
+            window.draw(weapon_levelText);
+            window.draw(player_weapon_level);
         }
         window.draw(pointer);
         window.display();
