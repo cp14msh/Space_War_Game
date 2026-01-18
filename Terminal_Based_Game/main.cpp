@@ -23,79 +23,15 @@ struct Bullet
     bool active;
 };
 
-struct Enemy
+struct NewEnemy
 {
     int x, y;
     bool active;
-    steady_clock::time_point lastMoveTime;
-};
-
-class Enemy2
-{
-public:
-    int x, y;
-    int health_enemy2;
+    int health_enemy;
     int width, height;
-    bool active;
-
-    vector<string> shape_enemy2;
     steady_clock::time_point lastMoveTime;
-
-    Enemy2()
-    {
-        shape_enemy2 = {"<0>"};
-        height = shape_enemy2.size();
-        width = shape_enemy2[0].length();
-        health_enemy2 = 2;
-    }
-};
-
-class Enemy3
-{
-public:
-    int x, y;
-    int health_enemy3;
-    int width, height;
-    bool active;
-
-    vector<string> shape_enemy3;
-    steady_clock::time_point lastMoveTime;
+    vector<string> shape_enemy;
     steady_clock::time_point lastShootTime;
-
-    Enemy3()
-    {
-        shape_enemy3 = {
-            " /M\\ ",
-            " \\W/ "};
-        height = shape_enemy3.size();
-        width = shape_enemy3[0].length();
-        health_enemy3 = 5;
-        lastShootTime = steady_clock::now();
-    }
-};
-
-class Enemy4
-{
-public:
-    int x, y;
-    int health_enemy4;
-    int width, height;
-    bool active;
-
-    vector<string> shape_enemy4;
-    steady_clock::time_point lastMoveTime;
-    steady_clock::time_point lastShootTime;
-
-    Enemy4()
-    {
-        shape_enemy4 = {
-            " /TT\\ ",
-            " \\VV/ "};
-        height = shape_enemy4.size();
-        width = shape_enemy4[0].length();
-        health_enemy4 = 8;
-        lastShootTime = steady_clock::now();
-    }
 };
 
 class Question_Box
@@ -178,6 +114,104 @@ void ShowGameOverScreen(int score)
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
 
+void enemy_erase(vector<NewEnemy> &enemies)
+{
+    for (size_t i = 0; i < enemies.size();)
+    {
+        if (!enemies[i].active)
+            enemies.erase(enemies.begin() + i);
+        else
+            i++;
+    }
+}
+
+void SpawnEnemyType(int MinHits, int MaxHits, int spawnInterval, int health_enemy, int Hits, int width, vector<NewEnemy> &enemies,
+                    vector<string> shape, steady_clock::time_point &lastSpawnTime, steady_clock::time_point &now)
+{
+    if (MaxHits >= Hits && Hits >= MinHits && duration_cast<milliseconds>(now - lastSpawnTime).count() > spawnInterval)
+    {
+        NewEnemy e;
+        e.y = 1;
+        e.x = rand() % (WIDTH - width) + 1;
+        e.active = true;
+        e.health_enemy = health_enemy;
+        e.lastMoveTime = now;
+        e.shape_enemy = shape;
+        e.width = e.shape_enemy[0].length();
+        e.height = e.shape_enemy.size();
+        enemies.push_back(e);
+        lastSpawnTime = now;
+    }
+}
+
+void enemy_get_hit_bullets(vector<Bullet> &bullets, vector<NewEnemy> &enemies, int &hits, int point)
+{
+    for (auto &b : bullets)
+    {
+        if (!b.active)
+            continue;
+        for (auto &e : enemies)
+        {
+            if (e.active && b.x >= e.x && b.x < e.x + e.width && b.y >= e.y && b.y < e.y + e.height)
+            {
+                b.active = false;
+                e.active = false;
+                hits = point + hits;
+                Beep(700, 20);
+                break;
+            }
+        }
+        if (!b.active)
+            continue;
+    }
+}
+
+void enemy_render(vector<NewEnemy> &enemies, bool &isEnemy, int x, int y, char &enemyChar)
+{
+
+    for (auto &e : enemies)
+    {
+        if (x >= e.x && x < e.x + e.width && y >= e.y && y < e.y + e.height)
+        {
+            isEnemy = true;
+            enemyChar = e.shape_enemy[y - e.y][x - e.x];
+            break;
+        }
+    }
+}
+
+void Enemy_Movement__Collision(vector<NewEnemy> &enemies, Player &player, steady_clock::time_point now)
+{
+    for (auto &e : enemies)
+    {
+        if (!e.active)
+            continue;
+        if (duration_cast<milliseconds>(now - e.lastMoveTime).count() > 250)
+        {
+            e.y++;
+            e.lastMoveTime = now;
+        }
+        if (e.y > HEIGHT)
+            e.active = false;
+
+        // 2. Collision with Player
+        if (e.active && player.x < e.x + e.width && player.x + player.width > e.x &&
+            player.y < e.y + e.height && player.y + player.height > e.y)
+        {
+            if (player.weaponLevel > 1)
+            {
+                player.weaponLevel--;
+            }
+            else
+            {
+                player.hp--;
+            }
+            e.active = false;
+            Beep(500, 100);
+        }
+    }
+}
+
 int main()
 {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -195,10 +229,10 @@ int main()
         Player player(WIDTH / 2 - 2, HEIGHT - 5);
 
         vector<Bullet> bullets;
-        vector<Enemy> enemies;
-        vector<Enemy2> enemies2;
-        vector<Enemy3> enemies3;
-        vector<Enemy4> enemies4;
+        vector<NewEnemy> enemies;
+        vector<NewEnemy> enemies2;
+        vector<NewEnemy> enemies3;
+        vector<NewEnemy> enemies4;
         vector<Bullet> enemyBullets;
         vector<Question_Box> box;
 
@@ -281,32 +315,9 @@ int main()
 
             // --- Enemy 1 Logic ---//
             auto now = steady_clock::now();
-            if (hits >= 0 && hits <= 100)
-            {
-                if (duration_cast<milliseconds>(now - lastEnemySpawnTime).count() > 1000)
-                {
-                    Enemy e;
-                    e.y = 1;
-                    e.x = rand() % (WIDTH - 2) + 1;
-                    e.active = true;
-                    e.lastMoveTime = now;
-                    enemies.push_back(e);
-                    lastEnemySpawnTime = now;
-                }
-            }
-            else if (hits > 100)
-            {
-                if (duration_cast<milliseconds>(now - lastEnemySpawnTime).count() > 2000)
-                {
-                    Enemy e;
-                    e.y = 1;
-                    e.x = rand() % (WIDTH - 2) + 1;
-                    e.active = true;
-                    e.lastMoveTime = now;
-                    enemies.push_back(e);
-                    lastEnemySpawnTime = now;
-                }
-            }
+
+            SpawnEnemyType(0, 100, 1000, 1, hits, 2, enemies, {"A"}, lastEnemySpawnTime, now);
+            SpawnEnemyType(100, 1000000, 2000, 1, hits, 2, enemies, {"A"}, lastEnemySpawnTime, now);
 
             for (auto &e : enemies)
             {
@@ -334,110 +345,24 @@ int main()
                 }
             }
 
-            for (size_t i = 0; i < enemies.size();)
-            {
-                if (!enemies[i].active)
-                    enemies.erase(enemies.begin() + i);
-                else
-                    i++;
-            }
+            enemy_erase(enemies);
 
             // --- Enemy 2 Logic ---//
             auto now2 = steady_clock::now();
-            if (hits > 20)
-            {
-                if (duration_cast<milliseconds>(now2 - lastEnemySpawnTime2).count() > 2000)
-                {
-                    Enemy2 e2;
-                    e2.y = 1;
-                    e2.x = rand() % (WIDTH - 4) + 1;
-                    e2.active = true;
-                    e2.lastMoveTime = now2;
-                    enemies2.push_back(e2);
-                    lastEnemySpawnTime2 = now2;
-                }
-            }
+            SpawnEnemyType(20, 1000000, 2000, 2, hits, 4, enemies2, {"<0>"}, lastEnemySpawnTime2, now2);
 
-            for (auto &e2 : enemies2)
-            {
-                if (duration_cast<milliseconds>(now2 - e2.lastMoveTime).count() > 250)
-                {
-                    e2.y++;
-                    e2.lastMoveTime = now2;
-                }
-                if (e2.y > HEIGHT)
-                    e2.active = false;
+            Enemy_Movement__Collision(enemies2, player, now2);
 
-                // Collision with Player
-                if (e2.active && player.x < e2.x + e2.width && player.x + player.width > e2.x && player.y < e2.y + e2.height && player.y + player.height > e2.y)
-                {
-                    if (player.weaponLevel > 1)
-                    {
-                        player.weaponLevel--;
-                    }
-                    else
-                    {
-                        player.hp--;
-                    }
-                    e2.active = false;
-                    Beep(500, 100);
-                }
-            }
-
-            for (size_t i = 0; i < enemies2.size();)
-            {
-                if (!enemies2[i].active)
-                    enemies2.erase(enemies2.begin() + i);
-                else
-                    i++;
-            }
+            enemy_erase(enemies2);
 
             // --- Enemy 3 Logic (The Shooter1) ---//
             auto now3 = steady_clock::now();
-            if (hits > 40)
-            {
-                if (duration_cast<milliseconds>(now3 - lastEnemySpawnTime3).count() > 5000)
-                {
-                    Enemy3 e3;
-                    e3.y = 1;
-                    e3.x = rand() % (WIDTH - 6) + 1;
-                    e3.active = true;
-                    e3.lastMoveTime = now3;
-                    enemies3.push_back(e3);
-                    lastEnemySpawnTime3 = now3;
-                }
-            }
+            SpawnEnemyType(40, 1000000, 5000, 5, hits, 6, enemies3, {" /M\\ ", " \\W/ "}, lastEnemySpawnTime3, now3);
+
+            Enemy_Movement__Collision(enemies3, player, now3);
 
             for (auto &e3 : enemies3)
             {
-
-                if (duration_cast<milliseconds>(now3 - e3.lastMoveTime).count() > 250)
-                {
-                    e3.y++;
-                    e3.lastMoveTime = now3;
-                }
-                if (e3.y > HEIGHT)
-                    e3.active = false;
-
-                if (e3.active && player.x < e3.x + e3.width && player.x + player.width > e3.x && player.y < e3.y + e3.height && player.y + player.height > e3.y)
-                {
-                    if (player.weaponLevel > 2)
-                    {
-                        player.weaponLevel -= 2;
-                    }
-                    else if (player.weaponLevel == 2)
-                    {
-                        player.weaponLevel--;
-                        player.hp--;
-                    }
-                    else if (player.weaponLevel == 1)
-                    {
-                        player.hp -= 2;
-                    }
-                    e3.active = false;
-                    Beep(500, 100);
-                }
-
                 // *** Enemy3 shooting ***
                 if (e3.active && duration_cast<milliseconds>(now3 - e3.lastShootTime).count() > 2000)
                 {
@@ -450,13 +375,7 @@ int main()
                 }
             }
 
-            for (size_t i = 0; i < enemies3.size();)
-            {
-                if (!enemies3[i].active)
-                    enemies3.erase(enemies3.begin() + i);
-                else
-                    i++;
-            }
+            enemy_erase(enemies3);
 
             // --- Enemy Bullets Movement & Logic ---//
             auto nowBullet = steady_clock::now();
@@ -502,50 +421,12 @@ int main()
 
             // --- Enemy 4 Logic (The Shooter2) ---//
             auto now4 = steady_clock::now();
-            if (hits > 100)
-            {
-                if (duration_cast<milliseconds>(now4 - lastEnemySpawnTime4).count() > 5000)
-                {
-                    Enemy4 e4;
-                    e4.y = 1;
-                    e4.x = rand() % (WIDTH - 6) + 1;
-                    e4.active = true;
-                    e4.lastMoveTime = now4;
-                    enemies4.push_back(e4);
-                    lastEnemySpawnTime4 = now4;
-                }
-            }
+            SpawnEnemyType(100, 1000000, 5000, 8, hits, 6, enemies4, {" /TT\\ ", " \\VV/ "}, lastEnemySpawnTime4, now4);
+
+            Enemy_Movement__Collision(enemies4, player, now4);
 
             for (auto &e4 : enemies4)
             {
-
-                if (duration_cast<milliseconds>(now4 - e4.lastMoveTime).count() > 250)
-                {
-                    e4.y++;
-                    e4.lastMoveTime = now4;
-                }
-                if (e4.y > HEIGHT)
-                    e4.active = false;
-
-                if (e4.active && player.x < e4.x + e4.width && player.x + player.width > e4.x && player.y < e4.y + e4.height && player.y + player.height > e4.y)
-                {
-                    if (player.weaponLevel > 2)
-                    {
-                        player.weaponLevel -= 2;
-                    }
-                    else if (player.weaponLevel == 2)
-                    {
-                        player.weaponLevel--;
-                        player.hp--;
-                    }
-                    else if (player.weaponLevel == 1)
-                    {
-                        player.hp -= 2;
-                    }
-                    e4.active = false;
-                    Beep(500, 100);
-                }
-
                 // *** Enemy4 shooting (Dual Shot) ***
                 if (e4.active && duration_cast<milliseconds>(now4 - e4.lastShootTime).count() > 2000)
                 {
@@ -565,13 +446,7 @@ int main()
                 }
             }
 
-            for (size_t i = 0; i < enemies4.size();)
-            {
-                if (!enemies4[i].active)
-                    enemies4.erase(enemies4.begin() + i);
-                else
-                    i++;
-            }
+            enemy_erase(enemies4);
 
             // --- Enemy4 Bullets Movement & Logic ---//
             auto nowBullet2 = steady_clock::now();
@@ -691,6 +566,8 @@ int main()
             }
 
             // --- Collisions: Player Bullets vs Enemies ---//
+
+            // vs Enemy 1
             for (auto &b : bullets)
             {
                 if (!b.active)
@@ -711,73 +588,17 @@ int main()
 
                 if (!b.active)
                     continue;
-
-                // vs Enemy 2
-                for (auto &e2 : enemies2)
-                {
-                    if (e2.active && b.x >= e2.x && b.x < e2.x + e2.width && b.y >= e2.y && b.y < e2.y + e2.height)
-                    {
-                        b.active = false;
-                        if (e2.health_enemy2 <= 1)
-                        {
-                            e2.active = false;
-                            hits += 2;
-                            Beep(700, 20);
-                        }
-                        else
-                        {
-                            e2.health_enemy2--;
-                            Beep(200, 20);
-                        }
-                        break;
-                    }
-                }
-
-                if (!b.active)
-                    continue;
-
-                // vs Enemy 3
-                for (auto &e3 : enemies3)
-                {
-                    if (e3.active && b.x >= e3.x && b.x < e3.x + e3.width && b.y >= e3.y && b.y < e3.y + e3.height)
-                    {
-                        b.active = false;
-                        if (e3.health_enemy3 <= 1)
-                        {
-                            e3.active = false;
-                            hits += 5;
-                            Beep(800, 20);
-                        }
-                        else
-                        {
-                            e3.health_enemy3--;
-                            Beep(200, 20);
-                        }
-                        break;
-                    }
-                }
-
-                // vs Enemy 4
-                for (auto &e4 : enemies4)
-                {
-                    if (e4.active && b.x >= e4.x && b.x < e4.x + e4.width && b.y >= e4.y && b.y < e4.y + e4.height)
-                    {
-                        b.active = false;
-                        if (e4.health_enemy4 <= 1)
-                        {
-                            e4.active = false;
-                            hits += 8;
-                            Beep(1000, 20);
-                        }
-                        else
-                        {
-                            e4.health_enemy4--;
-                            Beep(300, 20);
-                        }
-                        break;
-                    }
-                }
             }
+            // vs Enemy 2
+            enemy_get_hit_bullets(bullets, enemies2, hits, 2);
+
+            // vs Enemy 3
+            enemy_get_hit_bullets(bullets, enemies3, hits, 5);
+
+            // vs Enemy 4
+            enemy_get_hit_bullets(bullets, enemies4, hits, 8);
+
+            int score = hits;
 
             if (player.hp <= 0)
                 gameOver = true;
@@ -830,43 +651,19 @@ int main()
                     bool isEnemy2 = false;
                     char enemy2Char = ' ';
 
-                    for (auto &e2 : enemies2)
-                    {
-                        if (x >= e2.x && x < e2.x + e2.width && y >= e2.y && y < e2.y + e2.height)
-                        {
-                            isEnemy2 = true;
-                            enemy2Char = e2.shape_enemy2[y - e2.y][x - e2.x];
-                            break;
-                        }
-                    }
+                    enemy_render(enemies2, isEnemy2, x, y, enemy2Char);
 
                     // Render Enemy 3
                     bool isEnemy3 = false;
                     char enemy3Char = ' ';
 
-                    for (auto &e3 : enemies3)
-                    {
-                        if (x >= e3.x && x < e3.x + e3.width && y >= e3.y && y < e3.y + e3.height)
-                        {
-                            isEnemy3 = true;
-                            enemy3Char = e3.shape_enemy3[y - e3.y][x - e3.x];
-                            break;
-                        }
-                    }
+                    enemy_render(enemies3, isEnemy3, x, y, enemy3Char);
 
                     // Render Enemy 4
                     bool isEnemy4 = false;
                     char enemy4Char = ' ';
 
-                    for (auto &e4 : enemies4)
-                    {
-                        if (x >= e4.x && x < e4.x + e4.width && y >= e4.y && y < e4.y + e4.height)
-                        {
-                            isEnemy4 = true;
-                            enemy4Char = e4.shape_enemy4[y - e4.y][x - e4.x];
-                            break;
-                        }
-                    }
+                    enemy_render(enemies4, isEnemy4, x, y, enemy4Char);
 
                     bool isbox = false;
                     char boxChar = ' ';
