@@ -285,6 +285,20 @@ int main()
     }
     Sound YES_sound(YES_Buffer);
 
+    SoundBuffer PowerDownS;
+    if (!PowerDownS.loadFromFile("poweDown.mp3"))
+    {
+        return -1;
+    }
+    Sound PowerDown_sound(PowerDownS);
+
+    SoundBuffer PowerUP_s;
+    if (!PowerUP_s.loadFromFile("powerUp.wav"))
+    {
+        return -1;
+    }
+    Sound PowerUp_sound(PowerUP_s);
+
     /// -------------------------------------------------
     // POINTER
     // -------------------------------------------------
@@ -1058,10 +1072,11 @@ int main()
             // PowerUp movement and collision
             for (size_t i = 0; i < powerUps.size(); i++)
             {
-                powerUps[i].sprite.move({0.f, 1.f});
+                powerUps[i].sprite.move({0.f, 0.8f});
 
                 if (player.getGlobalBounds().findIntersection(powerUps[i].sprite.getGlobalBounds()))
                 {
+                    PowerUp_sound.play();
                     powerUps.erase(powerUps.begin() + i);
                     if (weapon_level < 5)
                     {
@@ -1100,11 +1115,12 @@ int main()
             // PowerDown movement and collision
             for (size_t i = 0; i < powerDowns.size(); i++)
             {
-                powerDowns[i].sprite.move({0.f, 1.f});
+                powerDowns[i].sprite.move({0.f, 0.8f});
 
                 if (player.getGlobalBounds().findIntersection(powerDowns[i].sprite.getGlobalBounds()))
                 {
                     powerDowns.erase(powerDowns.begin() + i);
+                    PowerDown_sound.play();
                     if (weapon_level >= 2)
                     {
                         weapon_level -= 1;
