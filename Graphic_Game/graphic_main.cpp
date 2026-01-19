@@ -170,13 +170,20 @@ int main()
     }
     vector<PowerUp> powerUps;
     Clock powerUpSpawnTimer;
-    const float POWERUP_SPAWN_RATE = 10.0f;
+    const float POWERUP_SPAWN_RATE = 20.0f;
 
     // -------------------------------------------------
     // Bullets
     // -------------------------------------------------
     vector<RectangleShape> bullets;
     Clock shootTimer;
+
+    Texture bullets2Texture;
+    if (!bullets2Texture.loadFromFile("bullets_2.png"))
+        return -1;
+    Sprite bullet_2(bullets2Texture);
+    vector<Sprite> bullets_2;
+    Clock bullets2_shootTimer;
 
     Texture Enemy3_BulletsTexture;
     if (!Enemy3_BulletsTexture.loadFromFile("enemy3_bullets.png"))
@@ -358,8 +365,7 @@ int main()
             // -------------------------------------------------
             // Shooting Logic
             // -------------------------------------------------
-
-            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.4f)
+            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && shootTimer.getElapsedTime().asSeconds() > 0.4f && weapon_level == 1)
             {
                 shootingSound.play();
 
@@ -375,6 +381,21 @@ int main()
                 shootTimer.restart();
             }
 
+            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && bullets2_shootTimer.getElapsedTime().asSeconds() > 0.4f && weapon_level == 2)
+            {
+                shootingSound.play();
+
+                Sprite bullet2(bullets2Texture);
+
+                float bullet2X = player.getPosition().x + (bounds.size.x / 2) - 5.0f;
+                float bullet2Y = player.getPosition().y;
+                bullet2.setPosition({bullet2X, bullet2Y});
+
+                bullets_2.push_back(bullet2);
+
+                bullets2_shootTimer.restart();
+            }
+
             for (size_t i = 0; i < bullets.size(); i++)
             {
                 bullets[i].move({0.f, -10.f});
@@ -383,6 +404,18 @@ int main()
                 if (bullets[i].getPosition().y < -20.f)
                 {
                     bullets.erase(bullets.begin() + i);
+                    i--;
+                }
+            }
+
+            for (size_t i = 0; i < bullets_2.size(); i++)
+            {
+                bullets_2[i].move({0.f, -10.f});
+
+                // remove bullets from vector
+                if (bullets_2[i].getPosition().y < -20.f)
+                {
+                    bullets_2.erase(bullets_2.begin() + i);
                     i--;
                 }
             }
@@ -420,24 +453,52 @@ int main()
             }
 
             // Checking to see if the enemy has been hit by a bullet
-            for (size_t i = 0; i < bullets.size(); i++)
+            if (weapon_level == 1)
             {
-                for (size_t j = 0; j < enemies.size(); j++)
+                for (size_t i = 0; i < bullets.size(); i++)
                 {
-
-                    if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                    for (size_t j = 0; j < enemies.size(); j++)
                     {
-                        hit_enemy1Sound.play();
-                        score += 1;
-                        scoreText.setString(to_string(score));
 
-                        enemies.erase(enemies.begin() + j);
+                        if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                        {
+                            hit_enemy1Sound.play();
+                            score += 1;
+                            scoreText.setString(to_string(score));
 
-                        bullets.erase(bullets.begin() + i);
+                            enemies.erase(enemies.begin() + j);
 
-                        i--;
+                            bullets.erase(bullets.begin() + i);
 
-                        break;
+                            i--;
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (weapon_level == 2)
+            {
+                for (size_t i = 0; i < bullets_2.size(); i++)
+                {
+                    for (size_t j = 0; j < enemies.size(); j++)
+                    {
+
+                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                        {
+                            hit_enemy1Sound.play();
+                            score += 1;
+                            scoreText.setString(to_string(score));
+
+                            enemies.erase(enemies.begin() + j);
+
+                            bullets_2.erase(bullets_2.begin() + i);
+
+                            i--;
+
+                            break;
+                        }
                     }
                 }
             }
@@ -450,12 +511,17 @@ int main()
                 {
                     enemies.erase(enemies.begin() + i);
                     explosionSound.play();
-                    if (hp == 1)
+                    if (weapon_level > 1)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    else if (hp == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else
+                    else if (hp > 1)
                     {
                         hp -= 1;
                         hpText.setString(to_string(hp));
@@ -499,29 +565,57 @@ int main()
             }
 
             // Checking to see if the enemy2 has been hit by a bullet
-            for (size_t i = 0; i < bullets.size(); i++)
+            if (weapon_level == 1)
             {
-                for (size_t j = 0; j < enemies2.size(); j++)
+                for (size_t i = 0; i < bullets.size(); i++)
                 {
-
-                    if (bullets[i].getGlobalBounds().findIntersection(enemies2[j].sprite.getGlobalBounds()))
+                    for (size_t j = 0; j < enemies2.size(); j++)
                     {
-                        hit_enemy1Sound.play();
 
-                        score += 2;
-                        scoreText.setString(to_string(score));
-
-                        enemies2[j].health--;
-                        if (enemies2[j].health <= 0)
+                        if (bullets[i].getGlobalBounds().findIntersection(enemies2[j].sprite.getGlobalBounds()))
                         {
+                            hit_enemy1Sound.play();
+
+                            score += 2;
+                            scoreText.setString(to_string(score));
+
+                            enemies2[j].health--;
+                            if (enemies2[j].health <= 0)
+                            {
+                                enemies2.erase(enemies2.begin() + j);
+                                j--;
+                            }
+
+                            bullets.erase(bullets.begin() + i);
+                            i--;
+
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (weapon_level == 2)
+            {
+                for (size_t i = 0; i < bullets_2.size(); i++)
+                {
+                    for (size_t j = 0; j < enemies2.size(); j++)
+                    {
+
+                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies2[j].sprite.getGlobalBounds()))
+                        {
+                            hit_enemy1Sound.play();
+
+                            score += 2;
+                            scoreText.setString(to_string(score));
+
                             enemies2.erase(enemies2.begin() + j);
                             j--;
+
+                            bullets_2.erase(bullets_2.begin() + i);
+                            i--;
+
+                            break;
                         }
-
-                        bullets.erase(bullets.begin() + i);
-                        i--;
-
-                        break;
                     }
                 }
             }
@@ -534,12 +628,17 @@ int main()
                 {
                     enemies2.erase(enemies2.begin() + i);
                     explosionSound.play();
-                    if (hp == 1)
+                    if (weapon_level > 1)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    else if (hp == 1 && weapon_level == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else
+                    else if (hp > 1 && weapon_level == 1)
                     {
                         hp -= 1;
                         hpText.setString(to_string(hp));
@@ -584,30 +683,63 @@ int main()
             }
 
             // Checking to see if the enemy3 has been hit by a bullet
-            for (size_t i = 0; i < bullets.size(); i++)
+            if (weapon_level == 1)
             {
-                for (size_t j = 0; j < enemies3.size(); j++)
+                for (size_t i = 0; i < bullets.size(); i++)
                 {
-
-                    if (bullets[i].getGlobalBounds().findIntersection(enemies3[j].sprite.getGlobalBounds()))
+                    for (size_t j = 0; j < enemies3.size(); j++)
                     {
-                        hit_enemy1Sound.play();
 
-                        score += 3;
-                        scoreText.setString(to_string(score));
-
-                        enemies3[j].health--;
-                        if (enemies3[j].health <= 0)
+                        if (bullets[i].getGlobalBounds().findIntersection(enemies3[j].sprite.getGlobalBounds()))
                         {
-                            enemies3.erase(enemies3.begin() + j);
-                            j--;
+                            hit_enemy1Sound.play();
+
+                            score += 3;
+                            scoreText.setString(to_string(score));
+
+                            enemies3[j].health--;
+                            if (enemies3[j].health <= 0)
+                            {
+                                enemies3.erase(enemies3.begin() + j);
+                                j--;
+                            }
+
+                            bullets.erase(bullets.begin() + i);
+
+                            i--;
+
+                            break;
                         }
+                    }
+                }
+            }
+            else if (weapon_level == 2)
+            {
+                for (size_t i = 0; i < bullets_2.size(); i++)
+                {
+                    for (size_t j = 0; j < enemies3.size(); j++)
+                    {
 
-                        bullets.erase(bullets.begin() + i);
+                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies3[j].sprite.getGlobalBounds()))
+                        {
+                            hit_enemy1Sound.play();
 
-                        i--;
+                            score += 3;
+                            scoreText.setString(to_string(score));
 
-                        break;
+                            enemies3[j].health -= 2;
+                            if (enemies3[j].health <= 0)
+                            {
+                                enemies3.erase(enemies3.begin() + j);
+                                j--;
+                            }
+
+                            bullets_2.erase(bullets_2.begin() + i);
+
+                            i--;
+
+                            break;
+                        }
                     }
                 }
             }
@@ -620,12 +752,17 @@ int main()
                 {
                     enemies3.erase(enemies3.begin() + i);
                     explosionSound.play();
-                    if (hp == 1)
+                    if (weapon_level > 1)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    else if (hp == 1 && weapon_level == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else if (hp == 3 || hp == 2)
+                    else if (hp > 1 && weapon_level == 1)
                     {
                         hp -= 1;
                         hpText.setString(to_string(hp));
@@ -654,18 +791,24 @@ int main()
                 enemy3_shootTimer.restart();
             }
 
+            // hiting player with enemy bullets
             for (size_t i = 0; i < enemy3_bullets.size(); i++)
             {
                 if (player.getGlobalBounds().findIntersection(enemy3_bullets[i].getGlobalBounds()))
                 {
                     enemy3_bullets.erase(enemy3_bullets.begin() + i);
                     explosionSound.play();
-                    if (hp == 1)
+                    if (weapon_level > 1)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    else if (hp == 1 && weapon_level == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else
+                    else if (hp > 1 && weapon_level == 1)
                     {
                         hp -= 1;
                         hpText.setString(to_string(hp));
@@ -691,7 +834,7 @@ int main()
             // Enemy4 logic
             // -------------------------------------------------
 
-            if (enemy4SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 80)
+            if (enemy4SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 60)
             {
                 Enemy4 newEnemy4(Enemy4Texture);
                 newEnemy4.sprite.setScale({1.3f, 1.3f});
@@ -721,48 +864,85 @@ int main()
             }
 
             // Checking to see if the enemy4 has been hit by a bullet
-            for (size_t i = 0; i < bullets.size(); i++)
+            if (weapon_level == 1)
             {
-                for (size_t j = 0; j < enemies4.size(); j++)
+                for (size_t i = 0; i < bullets.size(); i++)
                 {
-
-                    if (bullets[i].getGlobalBounds().findIntersection(enemies4[j].sprite.getGlobalBounds()))
+                    for (size_t j = 0; j < enemies4.size(); j++)
                     {
-                        hit_enemy1Sound.play();
 
-                        score += 5;
-                        scoreText.setString(to_string(score));
-
-                        enemies4[j].health--;
-                        if (enemies4[j].health <= 0)
+                        if (bullets[i].getGlobalBounds().findIntersection(enemies4[j].sprite.getGlobalBounds()))
                         {
-                            enemies4.erase(enemies4.begin() + j);
-                            j--;
+                            hit_enemy1Sound.play();
+
+                            score += 5;
+                            scoreText.setString(to_string(score));
+
+                            enemies4[j].health--;
+                            if (enemies4[j].health <= 0)
+                            {
+                                enemies4.erase(enemies4.begin() + j);
+                                j--;
+                            }
+
+                            bullets.erase(bullets.begin() + i);
+
+                            i--;
+
+                            break;
                         }
+                    }
+                }
+            }
+            else if (weapon_level == 2)
+            {
+                for (size_t i = 0; i < bullets_2.size(); i++)
+                {
+                    for (size_t j = 0; j < enemies4.size(); j++)
+                    {
 
-                        bullets.erase(bullets.begin() + i);
+                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies4[j].sprite.getGlobalBounds()))
+                        {
+                            hit_enemy1Sound.play();
 
-                        i--;
+                            score += 5;
+                            scoreText.setString(to_string(score));
 
-                        break;
+                            enemies4[j].health -= 2;
+                            if (enemies4[j].health <= 0)
+                            {
+                                enemies4.erase(enemies4.begin() + j);
+                                j--;
+                            }
+
+                            bullets_2.erase(bullets_2.begin() + i);
+
+                            i--;
+
+                            break;
+                        }
                     }
                 }
             }
 
             // Hitting the enemy4 with a ship
-
             for (size_t i = 0; i < enemies4.size(); i++)
             {
                 if (player.getGlobalBounds().findIntersection(enemies4[i].sprite.getGlobalBounds()))
                 {
                     enemies4.erase(enemies4.begin() + i);
                     explosionSound.play();
-                    if (hp == 1)
+                    if (weapon_level > 1)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    else if (hp == 1 && weapon_level == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else if (hp == 3 || hp == 2)
+                    else if (hp > 1 && weapon_level == 1)
                     {
                         hp -= 1;
                         hpText.setString(to_string(hp));
@@ -800,18 +980,24 @@ int main()
                 enemy4_shootTimer.restart();
             }
 
+            // hiting player with enemy bullets
             for (size_t i = 0; i < enemy4_bullets.size(); i++)
             {
                 if (player.getGlobalBounds().findIntersection(enemy4_bullets[i].getGlobalBounds()))
                 {
                     enemy4_bullets.erase(enemy4_bullets.begin() + i);
                     explosionSound.play();
-                    if (hp == 1)
+                    if (weapon_level > 1)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    else if (hp == 1 && weapon_level == 1)
                     {
                         isGameOver = true;
                         game_over_sound.play();
                     }
-                    else
+                    else if (hp > 1 && weapon_level == 1)
                     {
                         hp -= 1;
                         hpText.setString(to_string(hp));
@@ -836,7 +1022,7 @@ int main()
             // -------------------------------------------------
             // PowerUp Logic (New Addition)
             // -------------------------------------------------
-            if (powerUpSpawnTimer.getElapsedTime().asSeconds() > POWERUP_SPAWN_RATE && score > 50)
+            if (powerUpSpawnTimer.getElapsedTime().asSeconds() > POWERUP_SPAWN_RATE && score > 40)
             {
                 PowerUp newPowerUp(powerUpTexture);
                 newPowerUp.sprite.setScale({0.2f, 0.2f});
@@ -920,10 +1106,14 @@ int main()
         else
         {
             window.draw(board2);
-            window.draw(player);
 
             for (const auto &bullet : bullets)
                 window.draw(bullet);
+
+            for (const auto &bullet : bullets_2)
+                window.draw(bullet);
+
+            window.draw(player);
 
             for (const auto &enemy : enemies)
                 window.draw(enemy);
