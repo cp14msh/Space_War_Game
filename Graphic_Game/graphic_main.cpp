@@ -42,6 +42,12 @@ struct PowerUp
     PowerUp(const Texture &texture) : sprite(texture) {}
 };
 
+struct PowerDown
+{
+    Sprite sprite;
+    PowerDown(const Texture &texture) : sprite(texture) {}
+};
+
 int main()
 {
 
@@ -171,6 +177,19 @@ int main()
     vector<PowerUp> powerUps;
     Clock powerUpSpawnTimer;
     const float POWERUP_SPAWN_RATE = 20.0f;
+
+    // -------------------------------------------------
+    // PowerDown
+    // -------------------------------------------------
+    Texture powerDownTexture;
+    if (!powerDownTexture.loadFromFile("power_low.png"))
+    {
+        cerr << "Error: Could not load power_low.png!" << endl;
+        return -1;
+    }
+    vector<PowerDown> powerDowns;
+    Clock powerDownSpawnTimer;
+    const float POWERDOWN_SPAWN_RATE = 15.0f;
 
     // -------------------------------------------------
     // Bullets
@@ -1020,7 +1039,7 @@ int main()
             }
 
             // -------------------------------------------------
-            // PowerUp Logic (New Addition)
+            // PowerUp Logic
             // -------------------------------------------------
             if (powerUpSpawnTimer.getElapsedTime().asSeconds() > POWERUP_SPAWN_RATE && score > 40)
             {
@@ -1057,6 +1076,48 @@ int main()
                 if (powerUps[i].sprite.getPosition().y > 600.f)
                 {
                     powerUps.erase(powerUps.begin() + i);
+                    i--;
+                }
+            }
+
+            // -------------------------------------------------
+            // PowerDown Logic
+            // -------------------------------------------------
+            if (powerDownSpawnTimer.getElapsedTime().asSeconds() > POWERDOWN_SPAWN_RATE && score > 45)
+            {
+                PowerDown newpowerDown(powerDownTexture);
+                newpowerDown.sprite.setScale({0.3f, 0.3f});
+
+                float powerDownWidth = newpowerDown.sprite.getGlobalBounds().size.x;
+                float randomX = static_cast<float>(rand() % static_cast<int>(800 - powerDownWidth));
+
+                newpowerDown.sprite.setPosition({randomX, -50.f});
+
+                powerDowns.push_back(newpowerDown);
+                powerDownSpawnTimer.restart();
+            }
+
+            // PowerDown movement and collision
+            for (size_t i = 0; i < powerDowns.size(); i++)
+            {
+                powerDowns[i].sprite.move({0.f, 1.f});
+
+                if (player.getGlobalBounds().findIntersection(powerDowns[i].sprite.getGlobalBounds()))
+                {
+                    powerDowns.erase(powerDowns.begin() + i);
+                    if (weapon_level >= 2)
+                    {
+                        weapon_level -= 1;
+                        weapon_levelText.setString(to_string(weapon_level));
+                    }
+                    i--;
+                    continue;
+                }
+
+                // Clearing powerDowns that are off the screen
+                if (powerDowns[i].sprite.getPosition().y > 600.f)
+                {
+                    powerDowns.erase(powerDowns.begin() + i);
                     i--;
                 }
             }
@@ -1135,6 +1196,9 @@ int main()
 
             for (const auto &pu : powerUps)
                 window.draw(pu.sprite);
+
+            for (const auto &pd : powerDowns)
+                window.draw(pd.sprite);
 
             window.draw(player_hp);
             window.draw(player_score);
