@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <map>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
@@ -48,6 +49,29 @@ struct PowerDown
     PowerDown(const Texture &texture) : sprite(texture) {}
 };
 
+map<string, Texture> textures;
+void loadimage(const string &name, const string &location)
+{
+    Texture texture;
+    if (!texture.loadFromFile(location))
+    {
+        cerr << "Error: Could not load " << location << endl;
+    }
+    textures[name] = texture;
+}
+
+map<string, SoundBuffer> buffers;
+void loadsound(const string &name, const string &location)
+{
+    SoundBuffer buffer;
+    if (!buffer.loadFromFile(location))
+    {
+        cerr << "Error: Could not load " << location << endl;
+        return;
+    }
+    buffers[name] = buffer;
+}
+
 int main()
 {
 
@@ -61,15 +85,10 @@ int main()
     // -------------------------------------------------
     // Player
     // -------------------------------------------------
-    Texture spaceshipTexture;
-    if (!spaceshipTexture.loadFromFile("spaceship.png"))
-    {
-        cerr << "Error: Could not load spaceship.png!" << endl;
-        return -1;
-    }
+    loadimage("spaceship", "spaceship.png");
 
     // Paste the image into the sprite
-    Sprite player(spaceshipTexture);
+    Sprite player(textures["spaceship"]);
     player.setScale({1.3f, 1.3f});
 
     // set position for player
@@ -77,14 +96,8 @@ int main()
 
     // player_hp
     int hp = 3;
-    Texture hpTexture;
-    if (!hpTexture.loadFromFile("heart.png"))
-    {
-        cerr << "Error: Could not load heart.png!" << endl;
-        return -1;
-    }
-
-    Sprite player_hp(hpTexture);
+    loadimage("hpTexture", "heart.png");
+    Sprite player_hp(textures["hpTexture"]);
     player_hp.setScale({1.1f, 1.1f});
 
     // set position for player_hp
@@ -92,14 +105,8 @@ int main()
 
     // player_score
     int score = 0;
-    Texture scoreTexture;
-    if (!scoreTexture.loadFromFile("score.png"))
-    {
-        cerr << "Error: Could not load score.png!" << endl;
-        return -1;
-    }
-
-    Sprite player_score(scoreTexture);
+    loadimage("scoreTexture", "score.png");
+    Sprite player_score(textures["scoreTexture"]);
     player_score.setScale({0.15f, 0.15f});
 
     // set position for player_hp
@@ -107,14 +114,8 @@ int main()
 
     // player_weapon_level
     int weapon_level = 1;
-    Texture weaponlevelTexture;
-    if (!weaponlevelTexture.loadFromFile("weapon_level.png"))
-    {
-        cerr << "Error: Could not load score.png!" << endl;
-        return -1;
-    }
-
-    Sprite player_weapon_level(weaponlevelTexture);
+    loadimage("weaponlevelTexture", "weapon_level.png");
+    Sprite player_weapon_level(textures["weaponlevelTexture"]);
     player_weapon_level.setScale({0.18f, 0.18f});
 
     // set position for player_weapon_level
@@ -123,57 +124,39 @@ int main()
     // -------------------------------------------------
     // Enemy1
     // -------------------------------------------------
-    Texture EnemyTexture;
-    if (!EnemyTexture.loadFromFile("spritesheet.png"))
-        return -1;
-    Sprite enemy(EnemyTexture);
-
+    loadimage("EnemyTexture", "spritesheet.png");
+    Sprite enemy(textures["EnemyTexture"]);
     vector<Sprite> enemies;
     Clock enemySpawnTimer;
 
     // -------------------------------------------------
     // Enemy2
     // -------------------------------------------------
-    Texture Enemy2Texture;
-    if (!Enemy2Texture.loadFromFile("enemy2.png"))
-        return -1;
-    Sprite enemy2(Enemy2Texture);
-
+    loadimage("Enemy2Texture", "enemy2.png");
+    Sprite enemy2(textures["Enemy2Texture"]);
     Clock enemy2SpawnTimer;
-
     vector<Enemy2> enemies2;
 
     // -------------------------------------------------
     // Enemy3
     // -------------------------------------------------
-    Texture Enemy3Texture;
-    if (!Enemy3Texture.loadFromFile("enemy3.png"))
-        return -1;
-    Sprite enemy3(Enemy3Texture);
-
+    loadimage("Enemy3Texture", "enemy3.png");
+    Sprite enemy3(textures["Enemy3Texture"]);
     vector<Enemy3> enemies3;
     Clock enemy3SpawnTimer;
 
     // -------------------------------------------------
     // Enemy4
     // -------------------------------------------------
-    Texture Enemy4Texture;
-    if (!Enemy4Texture.loadFromFile("enemy4.png"))
-        return -1;
-    Sprite enemy4(Enemy4Texture);
-
+    loadimage("Enemy4Texture", "enemy4.png");
+    Sprite enemy4(textures["Enemy4Texture"]);
     vector<Enemy4> enemies4;
     Clock enemy4SpawnTimer;
 
     // -------------------------------------------------
     // PowerUp
     // -------------------------------------------------
-    Texture powerUpTexture;
-    if (!powerUpTexture.loadFromFile("obituary.png"))
-    {
-        cerr << "Error: Could not load obituary.png!" << endl;
-        return -1;
-    }
+    loadimage("powerUpTexture", "obituary.png");
     vector<PowerUp> powerUps;
     Clock powerUpSpawnTimer;
     const float POWERUP_SPAWN_RATE = 20.0f;
@@ -181,12 +164,7 @@ int main()
     // -------------------------------------------------
     // PowerDown
     // -------------------------------------------------
-    Texture powerDownTexture;
-    if (!powerDownTexture.loadFromFile("power_low.png"))
-    {
-        cerr << "Error: Could not load power_low.png!" << endl;
-        return -1;
-    }
+    loadimage("powerDownTexture", "power_low.png");
     vector<PowerDown> powerDowns;
     Clock powerDownSpawnTimer;
     const float POWERDOWN_SPAWN_RATE = 15.0f;
@@ -197,24 +175,18 @@ int main()
     vector<RectangleShape> bullets;
     Clock shootTimer;
 
-    Texture bullets2Texture;
-    if (!bullets2Texture.loadFromFile("bullets_2.png"))
-        return -1;
-    Sprite bullet_2(bullets2Texture);
+    loadimage("bullets2Texture", "bullets_2.png");
+    Sprite bullet_2(textures["bullets2Texture"]);
     vector<Sprite> bullets_2;
     Clock bullets2_shootTimer;
 
-    Texture Enemy3_BulletsTexture;
-    if (!Enemy3_BulletsTexture.loadFromFile("enemy3_bullets.png"))
-        return -1;
-    Sprite enemy3_bullet(Enemy3_BulletsTexture);
+    loadimage("Enemy3_BulletsTexture", "enemy3_bullets.png");
+    Sprite enemy3_bullet(textures["Enemy3_BulletsTexture"]);
     vector<Sprite> enemy3_bullets;
     Clock enemy3_shootTimer;
 
-    Texture Enemy4_BulletsTexture;
-    if (!Enemy4_BulletsTexture.loadFromFile("enemy4_bullets.png"))
-        return -1;
-    Sprite enemy4_bullet(Enemy4_BulletsTexture);
+    loadimage("Enemy4_BulletsTexture", "enemy4_bullets.png");
+    Sprite enemy4_bullet(textures["Enemy4_BulletsTexture"]);
     vector<Sprite> enemy4_bullets;
     Clock enemy4_shootTimer;
 
@@ -250,85 +222,44 @@ int main()
     // -------------------------------------------------
     // Sound Effects
     // -------------------------------------------------
-    SoundBuffer explosionBuffer;
-    if (!explosionBuffer.loadFromFile("explosion.wav"))
-    {
-        return -1;
-    }
-    Sound explosionSound(explosionBuffer);
+    loadsound("explosionBuffer", "explosion.wav");
+    Sound explosionSound(buffers["explosionBuffer"]);
 
-    SoundBuffer shootingBuffer;
-    if (!shootingBuffer.loadFromFile("shooting.wav"))
-    {
-        return -1;
-    }
-    Sound shootingSound(shootingBuffer);
+    loadsound("shootingBuffer", "shooting.wav");
+    Sound shootingSound(buffers["shootingBuffer"]);
 
-    SoundBuffer hit_enemy1Buffer;
-    if (!hit_enemy1Buffer.loadFromFile("hit01.wav"))
-    {
-        return -1;
-    }
-    Sound hit_enemy1Sound(hit_enemy1Buffer);
+    loadsound("hit_enemy1Buffer", "hit01.wav");
+    Sound hit_enemy1Sound(buffers["hit_enemy1Buffer"]);
 
-    SoundBuffer game_over_Buffer;
-    if (!game_over_Buffer.loadFromFile("Game_Over.wav"))
-    {
-        return -1;
-    }
-    Sound game_over_sound(game_over_Buffer);
+    loadsound("game_over_Buffer", "Game_Over.wav");
+    Sound game_over_sound(buffers["game_over_Buffer"]);
 
-    SoundBuffer YES_Buffer;
-    if (!YES_Buffer.loadFromFile("YES.flac"))
-    {
-        return -1;
-    }
-    Sound YES_sound(YES_Buffer);
+    loadsound("YES_Buffer", "YES.flac");
+    Sound YES_sound(buffers["YES_Buffer"]);
 
-    SoundBuffer PowerDownS;
-    if (!PowerDownS.loadFromFile("poweDown.mp3"))
-    {
-        return -1;
-    }
-    Sound PowerDown_sound(PowerDownS);
+    loadsound("PowerDownS", "poweDown.mp3");
+    Sound PowerDown_sound(buffers["PowerDownS"]);
 
-    SoundBuffer PowerUP_s;
-    if (!PowerUP_s.loadFromFile("powerUp.wav"))
-    {
-        return -1;
-    }
-    Sound PowerUp_sound(PowerUP_s);
+    loadsound("PowerUP_s", "powerUp.wav");
+    Sound PowerUp_sound(buffers["PowerUP_s"]);
 
     /// -------------------------------------------------
     // POINTER
     // -------------------------------------------------
-    Texture pointerTexture;
-    if (!pointerTexture.loadFromFile("pointer.png"))
-    {
-        cerr << "Error: Could not load pointer.png!" << endl;
-        return -1;
-    }
-
-    // Paste the image into the sprite
-    Sprite pointer(pointerTexture);
+    loadimage("pointerTexture", "pointer.png");
+    Sprite pointer(textures["pointerTexture"]);
     pointer.setScale({0.1f, 0.1f});
 
     /// -------------------------------------------------
     // GAME_Board
     // -------------------------------------------------
-    Texture boardTexture;
-    if (!boardTexture.loadFromFile("game_over.jpg"))
-        return -1;
-    Sprite board(boardTexture);
-
+    loadimage("boardTexture", "game_over.jpg");
+    Sprite board(textures["boardTexture"]);
     board.setScale({0.39f, 0.42f});
     board.setPosition({0.f, 0.f});
 
-    Texture board2Texture;
-    if (!board2Texture.loadFromFile("game_board.png"))
-        return -1;
-    Sprite board2(board2Texture);
-
+    loadimage("board2Texture", "game_board.png");
+    Sprite board2(textures["board2Texture"]);
     board2.setScale({0.39f, 0.42f});
     board2.setPosition({0.f, 0.f});
 
@@ -418,7 +349,7 @@ int main()
             {
                 shootingSound.play();
 
-                Sprite bullet2(bullets2Texture);
+                Sprite bullet2(textures["bullets2Texture"]);
 
                 float bullet2X = player.getPosition().x + (bounds.size.x / 2) - 5.0f;
                 float bullet2Y = player.getPosition().y;
@@ -459,7 +390,7 @@ int main()
 
             if (enemySpawnTimer.getElapsedTime().asSeconds() > 2.0f)
             {
-                Sprite enemy(EnemyTexture);
+                Sprite enemy(textures["EnemyTexture"]);
                 enemy.setScale({1.0f, 1.0f});
 
                 float enemyWidth = enemy.getGlobalBounds().size.x;
@@ -571,7 +502,7 @@ int main()
 
             if (enemy2SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 15)
             {
-                Enemy2 newEnemy2(Enemy2Texture);
+                Enemy2 newEnemy2(textures["Enemy2Texture"]);
                 newEnemy2.sprite.setScale({1.1f, 1.1f});
 
                 float enemy2Width = newEnemy2.sprite.getGlobalBounds().size.x;
@@ -688,7 +619,7 @@ int main()
 
             if (enemy3SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 40)
             {
-                Enemy3 newEnemy3(Enemy3Texture);
+                Enemy3 newEnemy3(textures["Enemy3Texture"]);
                 newEnemy3.sprite.setScale({1.3f, 1.3f});
 
                 float enemy3Width = newEnemy3.sprite.getGlobalBounds().size.x;
@@ -814,7 +745,7 @@ int main()
             {
                 for (size_t i = 0; i < enemies3.size(); i++)
                 {
-                    Sprite bullet(Enemy3_BulletsTexture);
+                    Sprite bullet(textures["Enemy3_BulletsTexture"]);
                     float bulletX = enemies3[i].sprite.getPosition().x + enemy3_bounds.size.x / 2 - 4;
                     float bulletY = enemies3[i].sprite.getPosition().y + enemy3_bounds.size.y - 4;
                     bullet.setPosition({bulletX, bulletY});
@@ -869,7 +800,7 @@ int main()
 
             if (enemy4SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 60)
             {
-                Enemy4 newEnemy4(Enemy4Texture);
+                Enemy4 newEnemy4(textures["Enemy4Texture"]);
                 newEnemy4.sprite.setScale({1.3f, 1.3f});
 
                 float enemy4Width = enemy4.getGlobalBounds().size.x;
@@ -994,8 +925,8 @@ int main()
             {
                 for (size_t i = 0; i < enemies4.size(); i++)
                 {
-                    Sprite bullet_l(Enemy4_BulletsTexture);
-                    Sprite bullet_r(Enemy4_BulletsTexture);
+                    Sprite bullet_l(textures["Enemy4_BulletsTexture"]);
+                    Sprite bullet_r(textures["Enemy4_BulletsTexture"]);
 
                     float bulletX_l = enemies4[i].sprite.getPosition().x + enemy4_bounds.size.x / 2 - 17;
                     float bulletX_r = enemies4[i].sprite.getPosition().x + enemy4_bounds.size.x / 2 + 10;
@@ -1057,7 +988,7 @@ int main()
             // -------------------------------------------------
             if (powerUpSpawnTimer.getElapsedTime().asSeconds() > POWERUP_SPAWN_RATE && score > 40)
             {
-                PowerUp newPowerUp(powerUpTexture);
+                PowerUp newPowerUp(textures["powerUpTexture"]);
                 newPowerUp.sprite.setScale({0.2f, 0.2f});
 
                 float powerUpWidth = newPowerUp.sprite.getGlobalBounds().size.x;
@@ -1100,7 +1031,7 @@ int main()
             // -------------------------------------------------
             if (powerDownSpawnTimer.getElapsedTime().asSeconds() > POWERDOWN_SPAWN_RATE && score > 45)
             {
-                PowerDown newpowerDown(powerDownTexture);
+                PowerDown newpowerDown(textures["powerDownTexture"]);
                 newpowerDown.sprite.setScale({0.3f, 0.3f});
 
                 float powerDownWidth = newpowerDown.sprite.getGlobalBounds().size.x;
@@ -1164,6 +1095,7 @@ int main()
                     enemies4.clear();
                     bullets.clear();
                     enemy3_bullets.clear();
+                    enemy4_bullets.clear();
 
                     scoreText.setString("0");
                     score = 0;
