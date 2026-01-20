@@ -129,6 +129,21 @@ void enemy_get_hit_bullet2(vector<Sprite> &bullets_2, vector<NewEnemy> &enemies,
     }
 }
 
+void enemy_move_erase(vector<NewEnemy> &enemies, float speed_of_move)
+{
+    for (size_t i = 0; i < enemies.size(); i++)
+    {
+        enemies[i].sprite.move({0.f, speed_of_move});
+
+        // Clearing enemies that are off the screen
+        if (enemies[i].sprite.getPosition().y > 600.f)
+        {
+            enemies.erase(enemies.begin() + i);
+            i--;
+        }
+    }
+}
+
 int main()
 {
 
@@ -447,17 +462,7 @@ int main()
             SpawnEnemyType(1, 0, 1000000000, 2.0f, score, enemies, enemySpawnTimer, "EnemyTexture", 1.0f);
 
             // Enemy movement
-            for (size_t i = 0; i < enemies.size(); i++)
-            {
-                enemies[i].sprite.move({0.f, 2.f});
-
-                // Clearing enemies that are off the screen
-                if (enemies[i].sprite.getPosition().y > 600.f)
-                {
-                    enemies.erase(enemies.begin() + i);
-                    i--;
-                }
-            }
+            enemy_move_erase(enemies, 2.f);
 
             // Checking to see if the enemy has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
@@ -547,17 +552,7 @@ int main()
             SpawnEnemyType(2, 15, 1000000000, 3.0f, score, enemies2, enemy2SpawnTimer, "Enemy2Texture", 1.1f);
 
             // Enemy2 movement
-            for (size_t i = 0; i < enemies2.size(); i++)
-            {
-                enemies2[i].sprite.move({0.f, 2.f});
-
-                // Clearing enemies that are off the screen
-                if (enemies2[i].sprite.getPosition().y > 600.f)
-                {
-                    enemies2.erase(enemies2.begin() + i);
-                    i--;
-                }
-            }
+            enemy_move_erase(enemies2, 2.f);
 
             // Checking to see if the enemy2 has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
@@ -598,17 +593,7 @@ int main()
             SpawnEnemyType(4, 40, 1000000000, 3.0f, score, enemies3, enemy3SpawnTimer, "Enemy3Texture", 1.3f);
 
             // Enemy3 movement
-            for (size_t i = 0; i < enemies3.size(); i++)
-            {
-                enemies3[i].sprite.move({0.f, 1.f});
-
-                // Clearing enemies that are off the screen
-                if (enemies3[i].sprite.getPosition().y > 600.f)
-                {
-                    enemies3.erase(enemies3.begin() + i);
-                    i--;
-                }
-            }
+            enemy_move_erase(enemies3, 1.f);
 
             // Checking to see if the enemy3 has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
@@ -706,17 +691,7 @@ int main()
             SpawnEnemyType(8, 60, 1000000000, 3.0f, score, enemies4, enemy4SpawnTimer, "Enemy4Texture", 1.3f);
 
             // Enemy4 movement
-            for (size_t i = 0; i < enemies4.size(); i++)
-            {
-                enemies4[i].sprite.move({0.f, 1.f});
-
-                // Clearing enemies that are off the screen
-                if (enemies4[i].sprite.getPosition().y > 600.f)
-                {
-                    enemies4.erase(enemies4.begin() + i);
-                    i--;
-                }
-            }
+            enemy_move_erase(enemies4, 1.f);
 
             // Checking to see if the enemy4 has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
