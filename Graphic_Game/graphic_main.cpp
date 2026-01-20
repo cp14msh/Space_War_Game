@@ -467,55 +467,6 @@ int main()
             // Checking to see if the enemy has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
             enemy_get_hit_bullet2(bullets_2, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
-            if (weapon_level == 1)
-            {
-                for (size_t i = 0; i < bullets.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies.size(); j++)
-                    {
-
-                        if (bullets[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-                            score += 1;
-                            scoreText.setString(to_string(score));
-
-                            enemies.erase(enemies.begin() + j);
-
-                            bullets.erase(bullets.begin() + i);
-
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (weapon_level == 2)
-            {
-                for (size_t i = 0; i < bullets_2.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies.size(); j++)
-                    {
-
-                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-                            score += 1;
-                            scoreText.setString(to_string(score));
-
-                            enemies.erase(enemies.begin() + j);
-
-                            bullets_2.erase(bullets_2.begin() + i);
-
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
 
             // Hitting the enemy with a ship
 
