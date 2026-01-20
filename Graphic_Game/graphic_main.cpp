@@ -144,7 +144,9 @@ void enemy_move_erase(vector<NewEnemy> &enemies, float speed_of_move)
     }
 }
 
-void Hitting_the_enemy_with_ship(vector<NewEnemy> &enemies, bool &isGameOver, int &weapon_level, int &hp, Text &weapon_levelText, Text &hpText, Sound &explosionSound, Sound &game_over_sound, Sprite &player)
+void Hitting_the_enemy_with_ship(vector<NewEnemy> &enemies, bool &isGameOver, int &weapon_level,
+                                 int &hp, Text &weapon_levelText, Text &hpText, Sound &explosionSound,
+                                 Sound &game_over_sound, Sprite &player)
 {
     for (size_t i = 0; i < enemies.size(); i++)
     {
@@ -173,6 +175,39 @@ void Hitting_the_enemy_with_ship(vector<NewEnemy> &enemies, bool &isGameOver, in
         }
     }
 }
+
+void hiting_player_with_enemy_bullets(Sprite &player, Sound &explosionSound, bool &isGameOver, int &weapon_level,
+                                      Sound &game_over_sound, Text &weapon_levelText, int &hp, Text &hpText,
+                                      vector<Sprite> &enemy_bullets)
+{
+    for (size_t i = 0; i < enemy_bullets.size(); i++)
+    {
+        if (player.getGlobalBounds().findIntersection(enemy_bullets[i].getGlobalBounds()))
+        {
+            enemy_bullets.erase(enemy_bullets.begin() + i);
+            explosionSound.play();
+            if (weapon_level > 1)
+            {
+                weapon_level -= 1;
+                weapon_levelText.setString(to_string(weapon_level));
+            }
+            else if (hp == 1 && weapon_level == 1)
+            {
+                isGameOver = true;
+                game_over_sound.play();
+            }
+            else if (hp > 1 && weapon_level == 1)
+            {
+                hp -= 1;
+                hpText.setString(to_string(hp));
+                break;
+            }
+
+            i--;
+        }
+    }
+}
+
 int main()
 {
 
@@ -550,32 +585,7 @@ int main()
             }
 
             // hiting player with enemy bullets
-            for (size_t i = 0; i < enemy3_bullets.size(); i++)
-            {
-                if (player.getGlobalBounds().findIntersection(enemy3_bullets[i].getGlobalBounds()))
-                {
-                    enemy3_bullets.erase(enemy3_bullets.begin() + i);
-                    explosionSound.play();
-                    if (weapon_level > 1)
-                    {
-                        weapon_level -= 1;
-                        weapon_levelText.setString(to_string(weapon_level));
-                    }
-                    else if (hp == 1 && weapon_level == 1)
-                    {
-                        isGameOver = true;
-                        game_over_sound.play();
-                    }
-                    else if (hp > 1 && weapon_level == 1)
-                    {
-                        hp -= 1;
-                        hpText.setString(to_string(hp));
-                        break;
-                    }
-
-                    i--;
-                }
-            }
+            hiting_player_with_enemy_bullets(player, explosionSound, isGameOver, weapon_level, game_over_sound, weapon_levelText, hp, hpText, enemy3_bullets);
 
             // remove enemy3_bullets from vector
             for (size_t i = 0; i < enemy3_bullets.size(); i++)
@@ -631,32 +641,7 @@ int main()
             }
 
             // hiting player with enemy bullets
-            for (size_t i = 0; i < enemy4_bullets.size(); i++)
-            {
-                if (player.getGlobalBounds().findIntersection(enemy4_bullets[i].getGlobalBounds()))
-                {
-                    enemy4_bullets.erase(enemy4_bullets.begin() + i);
-                    explosionSound.play();
-                    if (weapon_level > 1)
-                    {
-                        weapon_level -= 1;
-                        weapon_levelText.setString(to_string(weapon_level));
-                    }
-                    else if (hp == 1 && weapon_level == 1)
-                    {
-                        isGameOver = true;
-                        game_over_sound.play();
-                    }
-                    else if (hp > 1 && weapon_level == 1)
-                    {
-                        hp -= 1;
-                        hpText.setString(to_string(hp));
-                        break;
-                    }
-
-                    i--;
-                }
-            }
+            hiting_player_with_enemy_bullets(player, explosionSound, isGameOver, weapon_level, game_over_sound, weapon_levelText, hp, hpText, enemy4_bullets);
 
             // remove enemy4_bullets from vector
             for (size_t i = 0; i < enemy4_bullets.size(); i++)
