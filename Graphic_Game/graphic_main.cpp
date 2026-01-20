@@ -144,6 +144,35 @@ void enemy_move_erase(vector<NewEnemy> &enemies, float speed_of_move)
     }
 }
 
+void Hitting_the_enemy_with_ship(vector<NewEnemy> &enemies, bool &isGameOver, int &weapon_level, int &hp, Text &weapon_levelText, Text &hpText, Sound &explosionSound, Sound &game_over_sound, Sprite &player)
+{
+    for (size_t i = 0; i < enemies.size(); i++)
+    {
+        if (player.getGlobalBounds().findIntersection(enemies[i].sprite.getGlobalBounds()))
+        {
+            enemies.erase(enemies.begin() + i);
+            explosionSound.play();
+            if (weapon_level > 1)
+            {
+                weapon_level -= 1;
+                weapon_levelText.setString(to_string(weapon_level));
+            }
+            else if (hp == 1 && weapon_level == 1)
+            {
+                isGameOver = true;
+                game_over_sound.play();
+            }
+            else if (hp > 1 && weapon_level == 1)
+            {
+                hp -= 1;
+                hpText.setString(to_string(hp));
+                break;
+            }
+
+            i--;
+        }
+    }
+}
 int main()
 {
 
@@ -469,33 +498,7 @@ int main()
             enemy_get_hit_bullet2(bullets_2, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
 
             // Hitting the enemy with a ship
-
-            for (size_t i = 0; i < enemies.size(); i++)
-            {
-                if (player.getGlobalBounds().findIntersection(enemies[i].sprite.getGlobalBounds()))
-                {
-                    enemies.erase(enemies.begin() + i);
-                    explosionSound.play();
-                    if (weapon_level > 1)
-                    {
-                        weapon_level -= 1;
-                        weapon_levelText.setString(to_string(weapon_level));
-                    }
-                    else if (hp == 1)
-                    {
-                        isGameOver = true;
-                        game_over_sound.play();
-                    }
-                    else if (hp > 1)
-                    {
-                        hp -= 1;
-                        hpText.setString(to_string(hp));
-                        break;
-                    }
-
-                    i--;
-                }
-            }
+            Hitting_the_enemy_with_ship(enemies, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
 
             // -------------------------------------------------
             // Enemy2 logic
@@ -511,32 +514,7 @@ int main()
 
             // Hitting the enemy2 with a ship
 
-            for (size_t i = 0; i < enemies2.size(); i++)
-            {
-                if (player.getGlobalBounds().findIntersection(enemies2[i].sprite.getGlobalBounds()))
-                {
-                    enemies2.erase(enemies2.begin() + i);
-                    explosionSound.play();
-                    if (weapon_level > 1)
-                    {
-                        weapon_level -= 1;
-                        weapon_levelText.setString(to_string(weapon_level));
-                    }
-                    else if (hp == 1 && weapon_level == 1)
-                    {
-                        isGameOver = true;
-                        game_over_sound.play();
-                    }
-                    else if (hp > 1 && weapon_level == 1)
-                    {
-                        hp -= 1;
-                        hpText.setString(to_string(hp));
-                        break;
-                    }
-
-                    i--;
-                }
-            }
+            Hitting_the_enemy_with_ship(enemies2, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
 
             // -------------------------------------------------
             // Enemy3 logic
@@ -551,33 +529,7 @@ int main()
             enemy_get_hit_bullet2(bullets_2, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
 
             // Hitting the enemy3 with a ship
-
-            for (size_t i = 0; i < enemies3.size(); i++)
-            {
-                if (player.getGlobalBounds().findIntersection(enemies3[i].sprite.getGlobalBounds()))
-                {
-                    enemies3.erase(enemies3.begin() + i);
-                    explosionSound.play();
-                    if (weapon_level > 1)
-                    {
-                        weapon_level -= 1;
-                        weapon_levelText.setString(to_string(weapon_level));
-                    }
-                    else if (hp == 1 && weapon_level == 1)
-                    {
-                        isGameOver = true;
-                        game_over_sound.play();
-                    }
-                    else if (hp > 1 && weapon_level == 1)
-                    {
-                        hp -= 1;
-                        hpText.setString(to_string(hp));
-                        break;
-                    }
-
-                    i--;
-                }
-            }
+            Hitting_the_enemy_with_ship(enemies3, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
 
             FloatRect enemy3_bounds = enemy3.getGlobalBounds();
 
@@ -649,32 +601,7 @@ int main()
             enemy_get_hit_bullet2(bullets_2, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
 
             // Hitting the enemy4 with a ship
-            for (size_t i = 0; i < enemies4.size(); i++)
-            {
-                if (player.getGlobalBounds().findIntersection(enemies4[i].sprite.getGlobalBounds()))
-                {
-                    enemies4.erase(enemies4.begin() + i);
-                    explosionSound.play();
-                    if (weapon_level > 1)
-                    {
-                        weapon_level -= 1;
-                        weapon_levelText.setString(to_string(weapon_level));
-                    }
-                    else if (hp == 1 && weapon_level == 1)
-                    {
-                        isGameOver = true;
-                        game_over_sound.play();
-                    }
-                    else if (hp > 1 && weapon_level == 1)
-                    {
-                        hp -= 1;
-                        hpText.setString(to_string(hp));
-                        break;
-                    }
-
-                    i--;
-                }
-            }
+            Hitting_the_enemy_with_ship(enemies4, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
 
             FloatRect enemy4_bounds = enemy4.getGlobalBounds();
 
