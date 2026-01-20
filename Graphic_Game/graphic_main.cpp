@@ -16,25 +16,11 @@
 using namespace std;
 using namespace sf;
 
-struct Enemy2
+struct NewEnemy
 {
     Sprite sprite;
     int health;
-    Enemy2(const Texture &texture) : sprite(texture), health(2) {}
-};
-
-struct Enemy3
-{
-    Sprite sprite;
-    int health;
-    Enemy3(const Texture &texture) : sprite(texture), health(4) {}
-};
-
-struct Enemy4
-{
-    Sprite sprite;
-    int health;
-    Enemy4(const Texture &texture) : sprite(texture), health(8) {}
+    NewEnemy(const Texture &texture) : sprite(texture) {}
 };
 
 struct PowerUp
@@ -70,6 +56,25 @@ void loadsound(const string &name, const string &location)
         return;
     }
     buffers[name] = buffer;
+}
+
+void SpawnEnemyType(int health_e, int MinHits, long long MaxHits, float spawnInterval, int Hits, vector<NewEnemy> &enemies, Clock &enemySpawnTimer, string name)
+{
+    if (MaxHits >= Hits && Hits >= MinHits && enemySpawnTimer.getElapsedTime().asSeconds() > spawnInterval)
+    {
+        NewEnemy enemy(textures[name]);
+        enemy.health = health_e;
+        enemy.sprite.setScale({1.0f, 1.0f});
+
+        float enemyWidth = enemy.sprite.getGlobalBounds().size.x;
+        float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
+
+        enemy.sprite.setPosition({randomX, -50.f});
+
+        enemies.push_back(enemy);
+
+        enemySpawnTimer.restart();
+    }
 }
 
 int main()
@@ -126,7 +131,7 @@ int main()
     // -------------------------------------------------
     loadimage("EnemyTexture", "spritesheet.png");
     Sprite enemy(textures["EnemyTexture"]);
-    vector<Sprite> enemies;
+    vector<NewEnemy> enemies;
     Clock enemySpawnTimer;
 
     // -------------------------------------------------
@@ -135,14 +140,14 @@ int main()
     loadimage("Enemy2Texture", "enemy2.png");
     Sprite enemy2(textures["Enemy2Texture"]);
     Clock enemy2SpawnTimer;
-    vector<Enemy2> enemies2;
+    vector<NewEnemy> enemies2;
 
     // -------------------------------------------------
     // Enemy3
     // -------------------------------------------------
     loadimage("Enemy3Texture", "enemy3.png");
     Sprite enemy3(textures["Enemy3Texture"]);
-    vector<Enemy3> enemies3;
+    vector<NewEnemy> enemies3;
     Clock enemy3SpawnTimer;
 
     // -------------------------------------------------
@@ -150,7 +155,7 @@ int main()
     // -------------------------------------------------
     loadimage("Enemy4Texture", "enemy4.png");
     Sprite enemy4(textures["Enemy4Texture"]);
-    vector<Enemy4> enemies4;
+    vector<NewEnemy> enemies4;
     Clock enemy4SpawnTimer;
 
     // -------------------------------------------------
@@ -387,29 +392,15 @@ int main()
             // -------------------------------------------------
             // Enemy1 logic
             // -------------------------------------------------
-
-            if (enemySpawnTimer.getElapsedTime().asSeconds() > 2.0f)
-            {
-                Sprite enemy(textures["EnemyTexture"]);
-                enemy.setScale({1.0f, 1.0f});
-
-                float enemyWidth = enemy.getGlobalBounds().size.x;
-                float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
-
-                enemy.setPosition({randomX, -50.f});
-
-                enemies.push_back(enemy);
-
-                enemySpawnTimer.restart();
-            }
+            SpawnEnemyType(1, 0, 1000000000, 2.0f, score, enemies, enemySpawnTimer, "EnemyTexture");
 
             // Enemy movement
             for (size_t i = 0; i < enemies.size(); i++)
             {
-                enemies[i].move({0.f, 2.f});
+                enemies[i].sprite.move({0.f, 2.f});
 
                 // Clearing enemies that are off the screen
-                if (enemies[i].getPosition().y > 600.f)
+                if (enemies[i].sprite.getPosition().y > 600.f)
                 {
                     enemies.erase(enemies.begin() + i);
                     i--;
@@ -424,7 +415,7 @@ int main()
                     for (size_t j = 0; j < enemies.size(); j++)
                     {
 
-                        if (bullets[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                        if (bullets[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
                         {
                             hit_enemy1Sound.play();
                             score += 1;
@@ -449,7 +440,7 @@ int main()
                     for (size_t j = 0; j < enemies.size(); j++)
                     {
 
-                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies[j].getGlobalBounds()))
+                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
                         {
                             hit_enemy1Sound.play();
                             score += 1;
@@ -471,7 +462,7 @@ int main()
 
             for (size_t i = 0; i < enemies.size(); i++)
             {
-                if (player.getGlobalBounds().findIntersection(enemies[i].getGlobalBounds()))
+                if (player.getGlobalBounds().findIntersection(enemies[i].sprite.getGlobalBounds()))
                 {
                     enemies.erase(enemies.begin() + i);
                     explosionSound.play();
@@ -499,21 +490,7 @@ int main()
             // -------------------------------------------------
             // Enemy2 logic
             // -------------------------------------------------
-
-            if (enemy2SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 15)
-            {
-                Enemy2 newEnemy2(textures["Enemy2Texture"]);
-                newEnemy2.sprite.setScale({1.1f, 1.1f});
-
-                float enemy2Width = newEnemy2.sprite.getGlobalBounds().size.x;
-                float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemy2Width));
-
-                newEnemy2.sprite.setPosition({randomX, -50.f});
-                newEnemy2.health = 2;
-
-                enemies2.push_back(newEnemy2);
-                enemy2SpawnTimer.restart();
-            }
+            SpawnEnemyType(2, 15, 1000000000, 3.0f, score, enemies2, enemy2SpawnTimer, "Enemy2Texture");
 
             // Enemy2 movement
             for (size_t i = 0; i < enemies2.size(); i++)
@@ -616,22 +593,7 @@ int main()
             // -------------------------------------------------
             // Enemy3 logic
             // -------------------------------------------------
-
-            if (enemy3SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 40)
-            {
-                Enemy3 newEnemy3(textures["Enemy3Texture"]);
-                newEnemy3.sprite.setScale({1.3f, 1.3f});
-
-                float enemy3Width = newEnemy3.sprite.getGlobalBounds().size.x;
-                float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemy3Width));
-
-                newEnemy3.sprite.setPosition({randomX, -75.f});
-                newEnemy3.health = 4;
-
-                enemies3.push_back(newEnemy3);
-
-                enemy3SpawnTimer.restart();
-            }
+            SpawnEnemyType(4, 40, 1000000000, 3.0f, score, enemies3, enemy3SpawnTimer, "Enemy3Texture");
 
             // Enemy3 movement
             for (size_t i = 0; i < enemies3.size(); i++)
@@ -797,22 +759,7 @@ int main()
             // -------------------------------------------------
             // Enemy4 logic
             // -------------------------------------------------
-
-            if (enemy4SpawnTimer.getElapsedTime().asSeconds() > 3.0f && score >= 60)
-            {
-                Enemy4 newEnemy4(textures["Enemy4Texture"]);
-                newEnemy4.sprite.setScale({1.3f, 1.3f});
-
-                float enemy4Width = enemy4.getGlobalBounds().size.x;
-                float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemy4Width));
-
-                newEnemy4.sprite.setPosition({randomX, -50.f});
-                newEnemy4.health = 8;
-
-                enemies4.push_back(newEnemy4);
-
-                enemy4SpawnTimer.restart();
-            }
+            SpawnEnemyType(8, 60, 1000000000, 3.0f, score, enemies4, enemy4SpawnTimer, "Enemy4Texture");
 
             // Enemy4 movement
             for (size_t i = 0; i < enemies4.size(); i++)
@@ -1125,7 +1072,7 @@ int main()
             window.draw(player);
 
             for (const auto &enemy : enemies)
-                window.draw(enemy);
+                window.draw(enemy.sprite);
 
             for (const auto &enemy2 : enemies2)
                 window.draw(enemy2.sprite);
