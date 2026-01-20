@@ -58,22 +58,74 @@ void loadsound(const string &name, const string &location)
     buffers[name] = buffer;
 }
 
-void SpawnEnemyType(int health_e, int MinHits, long long MaxHits, float spawnInterval, int Hits, vector<NewEnemy> &enemies, Clock &enemySpawnTimer, string name)
+void SpawnEnemyType(int health_e, int MinHits, long long MaxHits, float spawnInterval, int Hits, vector<NewEnemy> &enemies, Clock &enemySpawnTimer, string name, float scale)
 {
     if (MaxHits >= Hits && Hits >= MinHits && enemySpawnTimer.getElapsedTime().asSeconds() > spawnInterval)
     {
         NewEnemy enemy(textures[name]);
         enemy.health = health_e;
-        enemy.sprite.setScale({1.0f, 1.0f});
-
+        enemy.sprite.setScale({scale, scale});
         float enemyWidth = enemy.sprite.getGlobalBounds().size.x;
         float randomX = static_cast<float>(rand() % static_cast<int>(800 - enemyWidth));
-
         enemy.sprite.setPosition({randomX, -50.f});
-
         enemies.push_back(enemy);
-
         enemySpawnTimer.restart();
+    }
+}
+
+void enemy_get_hit_bullet1(vector<RectangleShape> &bullets, vector<NewEnemy> &enemies, int &score, Text &scoreText, Sound &hitSound, int h_m_s, int weapon_level)
+{
+    if (weapon_level == 1)
+    {
+        for (size_t i = 0; i < bullets.size(); i++)
+        {
+            for (size_t j = 0; j < enemies.size(); j++)
+            {
+                if (bullets[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
+                {
+                    hitSound.play();
+                    score += h_m_s;
+                    scoreText.setString(to_string(score));
+                    enemies[j].health -= weapon_level;
+                    if (enemies[j].health <= 0)
+                    {
+                        enemies.erase(enemies.begin() + j);
+                        j--;
+                    }
+                    bullets.erase(bullets.begin() + i);
+                    i--;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void enemy_get_hit_bullet2(vector<Sprite> &bullets_2, vector<NewEnemy> &enemies, int &score, Text scoreText, Sound &hitSound, int h_m_s, int weapon_level)
+{
+    if (weapon_level == 2)
+    {
+        for (size_t i = 0; i < bullets_2.size(); i++)
+        {
+            for (size_t j = 0; j < enemies.size(); j++)
+            {
+                if (bullets_2[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
+                {
+                    hitSound.play();
+                    score += h_m_s;
+                    scoreText.setString(to_string(score));
+                    enemies[j].health -= weapon_level;
+                    if (enemies[j].health <= 0)
+                    {
+                        enemies.erase(enemies.begin() + j);
+                        j--;
+                    }
+                    bullets_2.erase(bullets_2.begin() + i);
+                    i--;
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -392,7 +444,7 @@ int main()
             // -------------------------------------------------
             // Enemy1 logic
             // -------------------------------------------------
-            SpawnEnemyType(1, 0, 1000000000, 2.0f, score, enemies, enemySpawnTimer, "EnemyTexture");
+            SpawnEnemyType(1, 0, 1000000000, 2.0f, score, enemies, enemySpawnTimer, "EnemyTexture", 1.0f);
 
             // Enemy movement
             for (size_t i = 0; i < enemies.size(); i++)
@@ -408,6 +460,8 @@ int main()
             }
 
             // Checking to see if the enemy has been hit by a bullet
+            enemy_get_hit_bullet1(bullets, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
+            enemy_get_hit_bullet2(bullets_2, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
             if (weapon_level == 1)
             {
                 for (size_t i = 0; i < bullets.size(); i++)
@@ -490,7 +544,7 @@ int main()
             // -------------------------------------------------
             // Enemy2 logic
             // -------------------------------------------------
-            SpawnEnemyType(2, 15, 1000000000, 3.0f, score, enemies2, enemy2SpawnTimer, "Enemy2Texture");
+            SpawnEnemyType(2, 15, 1000000000, 3.0f, score, enemies2, enemy2SpawnTimer, "Enemy2Texture", 1.1f);
 
             // Enemy2 movement
             for (size_t i = 0; i < enemies2.size(); i++)
@@ -506,60 +560,8 @@ int main()
             }
 
             // Checking to see if the enemy2 has been hit by a bullet
-            if (weapon_level == 1)
-            {
-                for (size_t i = 0; i < bullets.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies2.size(); j++)
-                    {
-
-                        if (bullets[i].getGlobalBounds().findIntersection(enemies2[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-
-                            score += 2;
-                            scoreText.setString(to_string(score));
-
-                            enemies2[j].health--;
-                            if (enemies2[j].health <= 0)
-                            {
-                                enemies2.erase(enemies2.begin() + j);
-                                j--;
-                            }
-
-                            bullets.erase(bullets.begin() + i);
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (weapon_level == 2)
-            {
-                for (size_t i = 0; i < bullets_2.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies2.size(); j++)
-                    {
-
-                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies2[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-
-                            score += 2;
-                            scoreText.setString(to_string(score));
-
-                            enemies2.erase(enemies2.begin() + j);
-                            j--;
-
-                            bullets_2.erase(bullets_2.begin() + i);
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
+            enemy_get_hit_bullet1(bullets, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
+            enemy_get_hit_bullet2(bullets_2, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
 
             // Hitting the enemy2 with a ship
 
@@ -593,7 +595,7 @@ int main()
             // -------------------------------------------------
             // Enemy3 logic
             // -------------------------------------------------
-            SpawnEnemyType(4, 40, 1000000000, 3.0f, score, enemies3, enemy3SpawnTimer, "Enemy3Texture");
+            SpawnEnemyType(4, 40, 1000000000, 3.0f, score, enemies3, enemy3SpawnTimer, "Enemy3Texture", 1.3f);
 
             // Enemy3 movement
             for (size_t i = 0; i < enemies3.size(); i++)
@@ -609,66 +611,8 @@ int main()
             }
 
             // Checking to see if the enemy3 has been hit by a bullet
-            if (weapon_level == 1)
-            {
-                for (size_t i = 0; i < bullets.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies3.size(); j++)
-                    {
-
-                        if (bullets[i].getGlobalBounds().findIntersection(enemies3[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-
-                            score += 3;
-                            scoreText.setString(to_string(score));
-
-                            enemies3[j].health--;
-                            if (enemies3[j].health <= 0)
-                            {
-                                enemies3.erase(enemies3.begin() + j);
-                                j--;
-                            }
-
-                            bullets.erase(bullets.begin() + i);
-
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (weapon_level == 2)
-            {
-                for (size_t i = 0; i < bullets_2.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies3.size(); j++)
-                    {
-
-                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies3[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-
-                            score += 3;
-                            scoreText.setString(to_string(score));
-
-                            enemies3[j].health -= 2;
-                            if (enemies3[j].health <= 0)
-                            {
-                                enemies3.erase(enemies3.begin() + j);
-                                j--;
-                            }
-
-                            bullets_2.erase(bullets_2.begin() + i);
-
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
+            enemy_get_hit_bullet1(bullets, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
+            enemy_get_hit_bullet2(bullets_2, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
 
             // Hitting the enemy3 with a ship
 
@@ -759,7 +703,7 @@ int main()
             // -------------------------------------------------
             // Enemy4 logic
             // -------------------------------------------------
-            SpawnEnemyType(8, 60, 1000000000, 3.0f, score, enemies4, enemy4SpawnTimer, "Enemy4Texture");
+            SpawnEnemyType(8, 60, 1000000000, 3.0f, score, enemies4, enemy4SpawnTimer, "Enemy4Texture", 1.3f);
 
             // Enemy4 movement
             for (size_t i = 0; i < enemies4.size(); i++)
@@ -775,66 +719,8 @@ int main()
             }
 
             // Checking to see if the enemy4 has been hit by a bullet
-            if (weapon_level == 1)
-            {
-                for (size_t i = 0; i < bullets.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies4.size(); j++)
-                    {
-
-                        if (bullets[i].getGlobalBounds().findIntersection(enemies4[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-
-                            score += 5;
-                            scoreText.setString(to_string(score));
-
-                            enemies4[j].health--;
-                            if (enemies4[j].health <= 0)
-                            {
-                                enemies4.erase(enemies4.begin() + j);
-                                j--;
-                            }
-
-                            bullets.erase(bullets.begin() + i);
-
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (weapon_level == 2)
-            {
-                for (size_t i = 0; i < bullets_2.size(); i++)
-                {
-                    for (size_t j = 0; j < enemies4.size(); j++)
-                    {
-
-                        if (bullets_2[i].getGlobalBounds().findIntersection(enemies4[j].sprite.getGlobalBounds()))
-                        {
-                            hit_enemy1Sound.play();
-
-                            score += 5;
-                            scoreText.setString(to_string(score));
-
-                            enemies4[j].health -= 2;
-                            if (enemies4[j].health <= 0)
-                            {
-                                enemies4.erase(enemies4.begin() + j);
-                                j--;
-                            }
-
-                            bullets_2.erase(bullets_2.begin() + i);
-
-                            i--;
-
-                            break;
-                        }
-                    }
-                }
-            }
+            enemy_get_hit_bullet1(bullets, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
+            enemy_get_hit_bullet2(bullets_2, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
 
             // Hitting the enemy4 with a ship
             for (size_t i = 0; i < enemies4.size(); i++)
