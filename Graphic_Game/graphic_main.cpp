@@ -101,15 +101,15 @@ void enemy_get_hit_bullet1(vector<RectangleShape> &bullets, vector<NewEnemy> &en
     }
 }
 
-void enemy_get_hit_bullet2(vector<Sprite> &bullets_2, vector<NewEnemy> &enemies, int &score, Text scoreText, Sound &hitSound, int h_m_s, int weapon_level)
+void enemy_get_hit_bullet_(vector<Sprite> &bullets_, vector<NewEnemy> &enemies, int &score, Text &scoreText, Sound &hitSound, int h_m_s, int weapon_level)
 {
-    if (weapon_level == 2)
+    if (weapon_level == 2 || weapon_level == 3)
     {
-        for (size_t i = 0; i < bullets_2.size(); i++)
+        for (size_t i = 0; i < bullets_.size(); i++)
         {
             for (size_t j = 0; j < enemies.size(); j++)
             {
-                if (bullets_2[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
+                if (bullets_[i].getGlobalBounds().findIntersection(enemies[j].sprite.getGlobalBounds()))
                 {
                     hitSound.play();
                     score += h_m_s;
@@ -120,7 +120,7 @@ void enemy_get_hit_bullet2(vector<Sprite> &bullets_2, vector<NewEnemy> &enemies,
                         enemies.erase(enemies.begin() + j);
                         j--;
                     }
-                    bullets_2.erase(bullets_2.begin() + i);
+                    bullets_.erase(bullets_.begin() + i);
                     i--;
                     break;
                 }
@@ -295,7 +295,7 @@ int main()
     loadimage("powerUpTexture", "obituary.png");
     vector<PowerUp> powerUps;
     Clock powerUpSpawnTimer;
-    const float POWERUP_SPAWN_RATE = 20.0f;
+    const float POWERUP_SPAWN_RATE = 25.0f;
 
     // -------------------------------------------------
     // PowerDown
@@ -315,6 +315,11 @@ int main()
     Sprite bullet_2(textures["bullets2Texture"]);
     vector<Sprite> bullets_2;
     Clock bullets2_shootTimer;
+
+    loadimage("bullets3Texture", "bullets_3.png");
+    Sprite bullet_3(textures["bullets3Texture"]);
+    vector<Sprite> bullets_3;
+    Clock bullets3_shootTimer;
 
     loadimage("Enemy3_BulletsTexture", "enemy3_bullets.png");
     Sprite enemy3_bullet(textures["Enemy3_BulletsTexture"]);
@@ -496,6 +501,21 @@ int main()
                 bullets2_shootTimer.restart();
             }
 
+            if (Keyboard::isKeyPressed(Keyboard::Key::Space) && bullets3_shootTimer.getElapsedTime().asSeconds() > 0.4f && weapon_level == 3)
+            {
+                shootingSound.play();
+
+                Sprite bullet3(textures["bullets3Texture"]);
+                bullet3.setScale({1.1f, 1.4f});
+                float bullet3X = player.getPosition().x + (bounds.size.x / 2) - 6.0f;
+                float bullet3Y = player.getPosition().y - 10;
+                bullet3.setPosition({bullet3X, bullet3Y});
+
+                bullets_3.push_back(bullet3);
+
+                bullets3_shootTimer.restart();
+            }
+
             for (size_t i = 0; i < bullets.size(); i++)
             {
                 bullets[i].move({0.f, -10.f});
@@ -520,6 +540,18 @@ int main()
                 }
             }
 
+            for (size_t i = 0; i < bullets_3.size(); i++)
+            {
+                bullets_3[i].move({0.f, -10.f});
+
+                // remove bullets from vector
+                if (bullets_3[i].getPosition().y < -20.f)
+                {
+                    bullets_3.erase(bullets_3.begin() + i);
+                    i--;
+                }
+            }
+
             // -------------------------------------------------
             // Enemy1 logic
             // -------------------------------------------------
@@ -530,7 +562,8 @@ int main()
 
             // Checking to see if the enemy has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
-            enemy_get_hit_bullet2(bullets_2, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
+            enemy_get_hit_bullet_(bullets_2, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
+            enemy_get_hit_bullet_(bullets_3, enemies, score, scoreText, hit_enemy1Sound, 1, weapon_level);
 
             // Hitting the enemy with a ship
             Hitting_the_enemy_with_ship(enemies, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
@@ -545,7 +578,8 @@ int main()
 
             // Checking to see if the enemy2 has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
-            enemy_get_hit_bullet2(bullets_2, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
+            enemy_get_hit_bullet_(bullets_2, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
+            enemy_get_hit_bullet_(bullets_3, enemies2, score, scoreText, hit_enemy1Sound, 2, weapon_level);
 
             // Hitting the enemy2 with a ship
 
@@ -561,7 +595,8 @@ int main()
 
             // Checking to see if the enemy3 has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
-            enemy_get_hit_bullet2(bullets_2, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
+            enemy_get_hit_bullet_(bullets_2, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
+            enemy_get_hit_bullet_(bullets_3, enemies3, score, scoreText, hit_enemy1Sound, 3, weapon_level);
 
             // Hitting the enemy3 with a ship
             Hitting_the_enemy_with_ship(enemies3, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
@@ -608,7 +643,8 @@ int main()
 
             // Checking to see if the enemy4 has been hit by a bullet
             enemy_get_hit_bullet1(bullets, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
-            enemy_get_hit_bullet2(bullets_2, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
+            enemy_get_hit_bullet_(bullets_2, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
+            enemy_get_hit_bullet_(bullets_3, enemies4, score, scoreText, hit_enemy1Sound, 5, weapon_level);
 
             // Hitting the enemy4 with a ship
             Hitting_the_enemy_with_ship(enemies4, isGameOver, weapon_level, hp, weapon_levelText, hpText, explosionSound, game_over_sound, player);
@@ -767,6 +803,8 @@ int main()
                     bullets.clear();
                     enemy3_bullets.clear();
                     enemy4_bullets.clear();
+                    powerDowns.clear();
+                    powerUps.clear();
 
                     scoreText.setString("0");
                     score = 0;
@@ -791,6 +829,9 @@ int main()
                 window.draw(bullet);
 
             for (const auto &bullet : bullets_2)
+                window.draw(bullet);
+
+            for (const auto &bullet : bullets_3)
                 window.draw(bullet);
 
             window.draw(player);
