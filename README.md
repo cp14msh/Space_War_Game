@@ -77,3 +77,10 @@ Root Directory/
 ```
 
 Enjoy the game!
+
+
+<img width="597" height="386" alt="game1" src="https://github.com/user-attachments/assets/ea7511e0-86e1-4705-8151-d8706d18037c" />
+
+
+
+<img width="598" height="399" alt="image" src="https://github.com/user-attachments/assets/0fb27edd-1bcf-4576-accd-8c5bd120ce5c" />
