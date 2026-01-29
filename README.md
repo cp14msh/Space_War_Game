@@ -34,6 +34,18 @@ g++ graphic_main.cpp resource.o -I C:\SFML-3.0.2\include -L C:\SFML-3.0.2\lib -o
 
 ---
 
+### 🛠️ Project Structure Overview
+```
+Root Directory/
+├── lib/                  # Critical DLL files for SFML
+├── Play.bat              # Launcher for easy access
+├── graphic_main.cpp      # Source code for Graphical Version
+├── [Terminal_Code].cpp   # Source code for Terminal Version
+├── font.ttf              # Game fonts
+├── *.png                 # Sprite assets (Enemies, Player, Bullets)
+└── *.wav / *.mp3         # Audio assets
+```
+---
 ## 💻 2. Terminal Space Shooter
 A nostalgic, ASCII-art based shooter that runs purely in the command line window.
 
@@ -63,18 +75,6 @@ X	Exit Game
     * ⭐ Give Bonus Points
 
 * Rendering: Uses custom frame timing to ensure smooth ASCII animations (targeting ~30 FPS).
-
-### 🛠️ Project Structure Overview
-```
-Root Directory/
-├── lib/                  # Critical DLL files for SFML
-├── Play.bat              # Launcher for easy access
-├── graphic_main.cpp      # Source code for Graphical Version
-├── [Terminal_Code].cpp   # Source code for Terminal Version
-├── font.ttf              # Game fonts
-├── *.png                 # Sprite assets (Enemies, Player, Bullets)
-└── *.wav / *.mp3         # Audio assets
-```
 
 Enjoy the game!
 
