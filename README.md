@@ -2,9 +2,9 @@
 
 Welcome to the **Space Shooter Collection**! This repository features two distinct implementations of a classic space shooter game: a fully featured **Graphical Version** powered by SFML and a retro-style **Terminal Version** built for the Windows console.
 
-Terminal Based Game : Ali Gaieni, Hasan Shahroodi
-Graphic Game : Hasan Shahroodi
 ---
+* Terminal Based Game : Ali Gaieni, Hasan Shahroodi 
+* Graphic Game : Hasan Shahroodi
 
 ## 🌌 1. Graphical Space War (SFML)
 
