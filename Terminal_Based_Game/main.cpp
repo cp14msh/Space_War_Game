@@ -45,7 +45,7 @@ struct Question_Box
     vector<string> shape_box;
     steady_clock::time_point lastMoveTime;
 
-    Question_Box()
+    Question_Box() // Constructor
     {
         shape_box =
             {
@@ -113,7 +113,7 @@ void ShowInstructions()
     cout << "- Press SPACE to shoot bullets\n";
     cout << "- Avoid enemies and shoot them\n";
     cout << "\nPress any key to return to menu...";
-    _getch();
+    _getch(); // conio.h
 }
 
 int ShowMenu()
@@ -133,7 +133,7 @@ int ShowMenu()
         if (choice < 1 || choice > 3)
         {
             cout << "Invalid choice! Try again.\n";
-            Sleep(1000);
+            this_thread::sleep_for(milliseconds(1000));
         }
 
     } while (choice < 1 || choice > 3);
@@ -244,11 +244,11 @@ void enemy_get_hit_bullets(vector<Bullet> &bullets, vector<NewEnemy> &enemies, i
 
 int main()
 {
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO cursorInfo;
-    GetConsoleCursorInfo(hOut, &cursorInfo);
-    cursorInfo.bVisible = false;
-    SetConsoleCursorInfo(hOut, &cursorInfo);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE); // give console
+    CONSOLE_CURSOR_INFO cursorInfo;                // dwSize, bVisible
+    GetConsoleCursorInfo(hOut, &cursorInfo);       // hOut ==> cursorInfo
+    cursorInfo.bVisible = false;                   //
+    SetConsoleCursorInfo(hOut, &cursorInfo);       // cursorInfo ==> hOut
 
     srand(time(0));
     bool appRunning = true;
@@ -278,9 +278,9 @@ int main()
                 cout << "\n\n\r\t      LOADING... " << 5 - duration_cast<seconds>(steady_clock::now() - startLoad).count() << "s";
                 cout << "\n\n\n\tPress any key to back to menu...";
 
-                if (_kbhit())
+                if (_kbhit()) //_kbhit() ==> yes/no
                 {
-                    _getch(); // clear key
+                    _getch(); // take key
                     cancelLoading = true;
                     break;
                 }
@@ -313,6 +313,7 @@ int main()
             auto lastEnemySpawnTime_bq = steady_clock::now();
             auto lastEnemyBulletMoveTime = steady_clock::now();
 
+            // --- Game Logic --- //
             while (!gameOver)
             {
                 if (GetAsyncKeyState('A') & 0x8000)
@@ -328,6 +329,7 @@ int main()
 
                 if (GetAsyncKeyState(VK_SPACE) & 0x8000)
                 {
+                    // player shooting
                     auto now = steady_clock::now();
                     if (duration_cast<milliseconds>(now - lastShotTime).count() > 200)
                     {
@@ -355,6 +357,7 @@ int main()
                     }
                 }
 
+                // player bullet moving
                 for (auto &b : bullets)
                 {
                     b.y--;
@@ -380,7 +383,7 @@ int main()
                 {
                     if (!e.active)
                         continue;
-                    int moveSpeed = (e.type == 1) ? 150 : 250;
+                    int moveSpeed = (e.type == 1) ? 200 : 250;
                     if (duration_cast<milliseconds>(now - e.lastMoveTime).count() > moveSpeed)
                     {
                         e.y++;
@@ -400,6 +403,7 @@ int main()
                         Beep(500, 50);
                     }
 
+                    // enemy shooting
                     switch (e.type)
                     {
                     case 3:
@@ -504,9 +508,11 @@ int main()
                 }
 
                 enemy_get_hit_bullets(bullets, enemies, hits);
+
                 if (player.hp <= 0)
                     gameOver = true;
 
+                // --- Rendring --- //
                 SetConsoleCursorPosition(hOut, {0, 0});
                 string buffer = "\n\n  ";
                 for (int k = 0; k < WIDTH + 2; k++)
@@ -523,6 +529,7 @@ int main()
                                 isBullet = true;
                                 break;
                             }
+
                         bool isEnemyBullet = false;
                         for (const auto &eb : enemyBullets)
                             if (eb.x == x && eb.y == y)
@@ -530,6 +537,8 @@ int main()
                                 isEnemyBullet = true;
                                 break;
                             }
+
+                        // enemy render
                         bool isEnemy = false;
                         char enemyChar = ' ';
                         for (auto &e : enemies)
@@ -539,6 +548,8 @@ int main()
                                 enemyChar = e.shape_enemy[y - e.y][x - e.x];
                                 break;
                             }
+
+                        // question box render
                         bool isBox = false;
                         char bChar = ' ';
                         for (const auto &h : box)
@@ -549,8 +560,10 @@ int main()
                                 break;
                             }
 
+                        // player render
                         if (x >= player.x && x < player.x + player.width && y >= player.y && y < player.y + player.height)
                             buffer += player.shape[y - player.y][x - player.x];
+
                         else if (isBullet)
                             buffer += "|";
                         else if (isEnemyBullet)
